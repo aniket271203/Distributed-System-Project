@@ -1,0 +1,244 @@
+╔════════════════════════════════════════════════════════════════════════╗
+║                                                                        ║
+║     MESH COMMUNICATION PROJECT - QUICK REFERENCE                       ║
+║     Author: Aniket Gupta (2022101099)                                  ║
+║                                                                        ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ QUICK START                                                            │
+└────────────────────────────────────────────────────────────────────────┘
+
+  1. Install dependencies:
+     $ pip install -r requirements.txt
+
+  2. Run tests:
+     $ mpiexec -n 16 python3 main.py
+
+  3. Or use Make:
+     $ make install test
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ COMMAND REFERENCE                                                      │
+└────────────────────────────────────────────────────────────────────────┘
+
+  Basic Commands:
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │ mpiexec -n <N> python3 main.py [data_size]                           │
+  │ mpiexec -n <N> python3 test_project.py                               │
+  │ mpiexec -n <N> python3 performance_analysis.py                       │
+  │ ./run.sh <num_processes> <data_size>                                 │
+  │ ./run_tests.sh                                                       │
+  └──────────────────────────────────────────────────────────────────────┘
+
+  Make Commands:
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │ make install          # Install dependencies                         │
+  │ make test            # Run test suite (16 processes)                 │
+  │ make quick           # Quick test (4 processes)                      │
+  │ make medium          # Medium test (16 processes)                    │
+  │ make large           # Large test (27 processes)                     │
+  │ make performance     # Performance analysis                          │
+  │ make broadcast       # Test broadcast only                           │
+  │ make gather          # Test gather only                              │
+  │ make clean           # Clean temporary files                         │
+  └──────────────────────────────────────────────────────────────────────┘
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ FILE STRUCTURE                                                         │
+└────────────────────────────────────────────────────────────────────────┘
+
+  Core Implementation:
+    mesh_topology.py         → Mesh creation (2D & 3D)
+    broadcast.py             → Broadcast operations
+    gather.py                → Gather operations
+    main.py                  → Main driver program
+    performance_analysis.py  → Performance measurement
+
+  Testing & Tools:
+    test_project.py          → Test suite
+    run.sh                   → Simple runner
+    run_tests.sh             → Full test suite
+    Makefile                 → Build automation
+
+  Documentation:
+    README.md                → User guide
+    IMPLEMENTATION.md        → Technical details
+    PROJECT_SUMMARY.md       → Project overview
+    QUICKSTART.txt           → This file
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ ALGORITHMS                                                             │
+└────────────────────────────────────────────────────────────────────────┘
+
+  2D Mesh Broadcast:
+    1. Broadcast along root's row
+    2. Broadcast down columns
+    Runtime: T = 2(√p - 1)ts + (p - 1)tw*m
+
+  2D Mesh Gather:
+    1. Gather along rows to column 0
+    2. Gather along root column
+    Runtime: T = 2(√p - 1)ts + (p - 1)tw*m
+
+  3D Mesh Broadcast:
+    1. Broadcast along x-axis
+    2. Broadcast along y-axis in root's plane
+    3. Broadcast along z-axis
+    Runtime: T = 3(∛p - 1)ts + (p - 1)tw*m
+
+  3D Mesh Gather:
+    1. Gather along x-axis to x=0
+    2. Gather along y-axis to y=0
+    3. Gather along z-axis to root
+    Runtime: T = 3(∛p - 1)ts + (p - 1)tw*m
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ RECOMMENDED PROCESS COUNTS                                             │
+└────────────────────────────────────────────────────────────────────────┘
+
+  2D Perfect Squares:  4, 9, 16, 25, 36, 49, 64, 81, 100
+  3D Perfect Cubes:    8, 27, 64, 125, 216, 343, 512
+
+  Examples:
+    16 processes → 4×4 grid (2D)
+    27 processes → 3×3×3 cube (3D)
+    64 processes → 8×8 grid (2D) or 4×4×4 cube (3D)
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ EXAMPLE OUTPUTS                                                        │
+└────────────────────────────────────────────────────────────────────────┘
+
+  $ mpiexec -n 16 python3 main.py
+
+  Output includes:
+    ✓ Mesh topology creation
+    ✓ Broadcast verification (all processes receive data)
+    ✓ Gather verification (root receives from all)
+    ✓ Performance metrics (time, steps, messages)
+    ✓ Theoretical analysis
+    ✓ 2D vs 3D comparison
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ PERFORMANCE METRICS                                                    │
+└────────────────────────────────────────────────────────────────────────┘
+
+  Measured:
+    • Execution time (seconds)
+    • Communication steps
+    • Messages sent/received
+    • Speedup (3D over 2D)
+
+  Calculated:
+    • Network diameter
+    • Bisection width
+    • Theoretical time (latency-bandwidth model)
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ KEY RESULTS                                                            │
+└────────────────────────────────────────────────────────────────────────┘
+
+  For p=27 processes:
+    2D (6×6 grid):        Diameter = 10, Steps = 10
+    3D (3×3×3 cube):      Diameter = 6,  Steps = 6
+    Improvement:          40% reduction in communication distance
+
+  For p=64 processes:
+    2D (8×8 grid):        Diameter = 14, Steps = 14
+    3D (4×4×4 cube):      Diameter = 9,  Steps = 9
+    Improvement:          36% reduction
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ VERIFICATION                                                           │
+└────────────────────────────────────────────────────────────────────────┘
+
+  All operations include automatic verification:
+    ✓ Broadcast: All processes receive identical data
+    ✓ Gather:    Root receives data from all processes
+    ✓ Topology:  Coordinate mapping is consistent
+    ✓ Timing:    Measurements are collected from all ranks
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ TROUBLESHOOTING                                                        │
+└────────────────────────────────────────────────────────────────────────┘
+
+  Problem: "mpiexec not found"
+  Solution: Install MPI
+    Ubuntu: sudo apt-get install openmpi-bin libopenmpi-dev
+    macOS:  brew install open-mpi
+
+  Problem: "No module named 'mpi4py'"
+  Solution: pip install -r requirements.txt
+
+  Problem: Non-square/non-cube process count
+  Solution: Code handles this automatically (rounds to nearest)
+
+  Problem: Slow performance
+  Solution: Use perfect squares/cubes for best results
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ TESTING SEQUENCE                                                       │
+└────────────────────────────────────────────────────────────────────────┘
+
+  1. Unit Tests:
+     $ mpiexec -n 16 python3 test_project.py
+
+  2. 2D Mesh Tests:
+     $ mpiexec -n 16 python3 main.py
+
+  3. 3D Mesh Tests:
+     $ mpiexec -n 27 python3 main.py
+
+  4. Performance Analysis:
+     $ mpiexec -n 16 python3 performance_analysis.py
+
+  5. Full Suite:
+     $ ./run_tests.sh
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ LATENCY-BANDWIDTH MODEL                                                │
+└────────────────────────────────────────────────────────────────────────┘
+
+  Formula: T = ts + tw × m
+
+  Where:
+    ts = startup latency (time to initiate communication)
+    tw = time per word (inverse of bandwidth)
+    m  = message size (words)
+
+  For Broadcast/Gather:
+    2D: T = 2(√p - 1)ts + (p - 1)tw*m
+    3D: T = 3(∛p - 1)ts + (p - 1)tw*m
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ FURTHER READING                                                        │
+└────────────────────────────────────────────────────────────────────────┘
+
+  • README.md           - Complete user guide and setup
+  • IMPLEMENTATION.md   - Technical implementation details
+  • PROJECT_SUMMARY.md  - High-level project overview
+  • Project scope PDF   - Original requirements
+
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ CONTACT                                                                │
+└────────────────────────────────────────────────────────────────────────┘
+
+  Author:      Aniket Gupta
+  Roll No:     2022101099
+  Course:      Distributed Systems (Sem-7)
+  Date:        November 2024
+
+═══════════════════════════════════════════════════════════════════════════

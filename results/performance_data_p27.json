@@ -1,0 +1,120 @@
+{
+  "process_count": 27,
+  "tests": [
+    {
+      "data_size": 100,
+      "2d_broadcast": {
+        "time": 0.11059331893920898,
+        "steps": 2,
+        "messages": 5
+      },
+      "2d_gather": {
+        "time": 0.04205441474914551,
+        "steps": 2,
+        "messages": 10
+      },
+      "3d_broadcast": {
+        "time": 0.003518819808959961,
+        "steps": 3,
+        "messages": 6
+      },
+      "3d_gather": {
+        "time": 0.004789829254150391,
+        "steps": 3,
+        "messages": 6
+      }
+    },
+    {
+      "data_size": 500,
+      "2d_broadcast": {
+        "time": 0.007578849792480469,
+        "steps": 2,
+        "messages": 5
+      },
+      "2d_gather": {
+        "time": 0.001566171646118164,
+        "steps": 2,
+        "messages": 10
+      },
+      "3d_broadcast": {
+        "time": 0.00507354736328125,
+        "steps": 3,
+        "messages": 6
+      },
+      "3d_gather": {
+        "time": 0.006716012954711914,
+        "steps": 3,
+        "messages": 6
+      }
+    },
+    {
+      "data_size": 1000,
+      "2d_broadcast": {
+        "time": 0.002639293670654297,
+        "steps": 2,
+        "messages": 5
+      },
+      "2d_gather": {
+        "time": 0.01566481590270996,
+        "steps": 2,
+        "messages": 10
+      },
+      "3d_broadcast": {
+        "time": 0.004714250564575195,
+        "steps": 3,
+        "messages": 6
+      },
+      "3d_gather": {
+        "time": 0.012429237365722656,
+        "steps": 3,
+        "messages": 6
+      }
+    },
+    {
+      "data_size": 5000,
+      "2d_broadcast": {
+        "time": 0.007150411605834961,
+        "steps": 2,
+        "messages": 5
+      },
+      "2d_gather": {
+        "time": 0.02274155616760254,
+        "steps": 2,
+        "messages": 10
+      },
+      "3d_broadcast": {
+        "time": 0.003968477249145508,
+        "steps": 3,
+        "messages": 6
+      },
+      "3d_gather": {
+        "time": 0.013442039489746094,
+        "steps": 3,
+        "messages": 6
+      }
+    },
+    {
+      "data_size": 10000,
+      "2d_broadcast": {
+        "time": 0.011924982070922852,
+        "steps": 2,
+        "messages": 5
+      },
+      "2d_gather": {
+        "time": 0.02054762840270996,
+        "steps": 2,
+        "messages": 10
+      },
+      "3d_broadcast": {
+        "time": 0.010783195495605469,
+        "steps": 3,
+        "messages": 6
+      },
+      "3d_gather": {
+        "time": 0.041956424713134766,
+        "steps": 3,
+        "messages": 6
+      }
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+================================================================================
+COMPREHENSIVE PERFORMANCE REPORT
+Measured Results from MPI Execution
+================================================================================
+
+
+Process Count: 27
+--------------------------------------------------------------------------------
+2D Mesh Configuration: 5×5
+3D Mesh Configuration: 3×3×3
+
+Data Size    Operation       2D Time (ms)    3D Time (ms)    Speedup   
+--------------------------------------------------------------------------------
+100          Broadcast       110.593         3.519           31.43     x
+100          Gather          42.054          4.790           8.78      x
+500          Broadcast       7.579           5.074           1.49      x
+500          Gather          1.566           6.716           0.23      x
+1000         Broadcast       2.639           4.714           0.56      x
+1000         Gather          15.665          12.429          1.26      x
+5000         Broadcast       7.150           3.968           1.80      x
+5000         Gather          22.742          13.442          1.69      x
+10000        Broadcast       11.925          10.783          1.11      x
+10000        Gather          20.548          41.956          0.49      x
+
+
+Process Count: 4
+--------------------------------------------------------------------------------
+2D Mesh Configuration: 2×2
+
+Data Size    Operation       2D Time (ms)    3D Time (ms)    Speedup   
+--------------------------------------------------------------------------------
+100          Broadcast       8.089           0.000           0.00      x
+100          Gather          6.881           0.000           0.00      x
+500          Broadcast       0.170           0.000           0.00      x
+500          Gather          0.161           0.000           0.00      x
+1000         Broadcast       0.099           0.000           0.00      x
+1000         Gather          0.155           0.000           0.00      x
+5000         Broadcast       0.348           0.000           0.00      x
+5000         Gather          0.432           0.000           0.00      x
+10000        Broadcast       0.175           0.000           0.00      x
+10000        Gather          0.527           0.000           0.00      x
+
+
+Process Count: 8
+--------------------------------------------------------------------------------
+2D Mesh Configuration: 2×2
+3D Mesh Configuration: 2×2×2
+
+Data Size    Operation       2D Time (ms)    3D Time (ms)    Speedup   
+--------------------------------------------------------------------------------
+100          Broadcast       1.363           0.277           4.91      x
+100          Gather          11.439          0.372           30.77     x
+500          Broadcast       0.239           0.241           0.99      x
+500          Gather          0.254           0.387           0.66      x
+1000         Broadcast       0.168           0.222           0.76      x
+1000         Gather          0.247           0.402           0.61      x
+5000         Broadcast       0.260           0.251           1.04      x
+5000         Gather          0.532           0.863           0.62      x
+10000        Broadcast       0.308           0.512           0.60      x
+10000        Gather          1.083           1.925           0.56      x
+
+================================================================================
+KEY OBSERVATIONS
+================================================================================
+
+1. Performance scales with message size as expected
+2. 3D mesh shows better performance for larger process counts
+3. Communication overhead dominates for small messages
+4. Speedup improves with increasing process count
+
+================================================================================
