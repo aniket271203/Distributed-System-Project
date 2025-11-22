@@ -2,7 +2,7 @@
 
 **Operations:** Broadcast (Bcast) and Gather  
 **Topologies:** 2D and 3D Mesh  
-**Author:** Aniket Gupta - 2022101099
+**Author:** Aniket Gupta - 2022101099 & Samarth Srikar - 2022101106
 
 ## Project Overview
 
@@ -259,5 +259,6 @@ This is an academic project for Distributed Systems course (Sem-7).
 ## Author
 
 **Aniket Gupta** - 2022101099  
+**Samarth Srikar** - 2022101106 
 Distributed Systems Project  
 November 2024

@@ -1,0 +1,231 @@
+:root {
+    --bg-color: #0f172a;
+    --panel-bg: #1e293b;
+    --text-color: #e2e8f0;
+    --accent-color: #3b82f6;
+    --accent-hover: #2563eb;
+    --border-color: #334155;
+    --success-color: #22c55e;
+    --root-color: #ef4444;
+    --idle-color: #64748b;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    background: linear-gradient(to right, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+header p {
+    color: #94a3b8;
+}
+
+.main-content {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+    min-height: 0; /* Important for flex child scrolling */
+}
+
+.controls-panel {
+    width: 300px;
+    background-color: var(--panel-bg);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+.toggle-group {
+    display: flex;
+    background-color: var(--bg-color);
+    border-radius: 6px;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.toggle-group button {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.toggle-group button.active {
+    background-color: var(--panel-bg);
+    color: var(--text-color);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.actions button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.actions button.primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.actions button.primary:hover {
+    background-color: var(--accent-hover);
+}
+
+.actions button:not(.primary) {
+    background-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.actions button:not(.primary):hover {
+    background-color: #475569;
+}
+
+.status-panel {
+    margin-top: auto;
+    background-color: var(--bg-color);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.status-panel h3 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: var(--accent-color);
+}
+
+#step-description {
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    line-height: 1.4;
+    min-height: 2.8em;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    border-top: 1px solid var(--border-color);
+    padding-top: 10px;
+}
+
+.canvas-container {
+    flex: 1;
+    background-color: var(--panel-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.legend {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(15, 23, 42, 0.8);
+    padding: 15px;
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.dot.root { background-color: var(--root-color); }
+.dot.active { background-color: var(--success-color); }
+.dot.idle { background-color: var(--idle-color); }
+
+.line {
+    width: 20px;
+    height: 3px;
+}
+
+.line.active { background-color: var(--accent-color); }
