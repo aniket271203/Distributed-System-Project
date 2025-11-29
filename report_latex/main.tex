@@ -8,81 +8,94 @@
 \geometry{a4paper, margin=1in}
 
 \title{Distributed Systems Project: Mesh Topology Communication Analysis}
-\author{Aniket Gupta}
+\author{Aniket Gupta \& Samarth Srikar}
 \date{\today}
 
 \begin{document}
 
 \maketitle
 
-\section{Introduction}
-This project explores communication algorithms on 2D and 3D mesh topologies using MPI. We implemented and analyzed Broadcast and Gather operations, comparing Dimension-Order Routing (DOR) with a Flooding algorithm.
+\section{Problem Statement}
+In distributed systems, efficient collective communication (Broadcast and Gather) is crucial for performance. The objective of this project is to implement and analyze these operations on 2D and 3D mesh topologies. We aim to compare the performance of different routing algorithms and topology dimensions to understand their scalability and efficiency.
 
-\section{Mesh Topology Implementation}
-We implemented a generalized mesh topology that adapts to the number of available processes ($P$).
+\section{Approach}
+
+\subsection{Topologies}
+We implemented a generalized mesh topology system using MPI:
 \begin{itemize}
-    \item \textbf{2D Mesh:} $N \times M$ grid where $N \times M \approx P$.
-    \item \textbf{3D Mesh:} $N \times M \times K$ grid where $N \times M \times K \approx P$.
+    \item \textbf{2D Mesh:} Processes are arranged in a $\sqrt{P} \times \sqrt{P}$ grid.
+    \item \textbf{3D Mesh:} Processes are arranged in a $\sqrt[3]{P} \times \sqrt[3]{P} \times \sqrt[3]{P}$ cube.
 \end{itemize}
-The topology is constructed using MPI communicators and Cartesian mapping.
+The 3D topology is expected to have a smaller network diameter ($3\sqrt[3]{P}$) compared to 2D ($2\sqrt{P}$), leading to lower latency.
 
-\section{Algorithms}
+\subsection{Algorithms}
 
-\subsection{Dimension-Order Routing (DOR)}
-Standard broadcast/gather propagates along axes sequentially (e.g., X then Y then Z).
+\subsubsection{1. Dimension-Order Routing (DOR)}
+This is a deterministic routing algorithm where messages are propagated along one dimension at a time.
 \begin{itemize}
-    \item \textbf{Broadcast:} Root sends to row leaders, who then send to their columns.
-    \item \textbf{Gather:} Leaves send to row leaders, who aggregate and send to root.
+    \item \textbf{Broadcast:} Root $\rightarrow$ X-axis $\rightarrow$ Y-axis $\rightarrow$ Z-axis.
+    \item \textbf{Gather:} Z-axis $\rightarrow$ Y-axis $\rightarrow$ X-axis $\rightarrow$ Root.
 \end{itemize}
+\textbf{Pros:} Simple, deadlock-free, low message redundancy.
+\textbf{Cons:} Higher latency (steps) compared to optimal flooding.
 
-\subsection{Flooding (Wavefront)}
-A flooding algorithm was implemented to simulate wavefront propagation.
+\subsubsection{2. Flooding (BFS)}
+We implemented a flooding algorithm based on Breadth-First Search (BFS).
 \begin{itemize}
-    \item Nodes receive data from any neighbor at distance $d$.
-    \item Nodes forward data to all neighbors at distance $d+1$.
-    \item This approach minimizes latency in irregular meshes but increases message complexity.
+    \item Nodes send messages to all unvisited neighbors simultaneously.
+    \item Propagation follows the "wavefront" or "diamond" pattern.
+\end{itemize}
+\textbf{Pros:} Optimal latency (steps = Manhattan distance).
+\textbf{Cons:} High message complexity (redundant messages sent to shared neighbors).
+
+\section{Implementation Details}
+The project is implemented in Python using \texttt{mpi4py}.
+\begin{itemize}
+    \item \texttt{mesh\_topology.py}: Handles coordinate mapping and neighbor discovery.
+    \item \texttt{broadcast.py} / \texttt{gather.py}: Implements DOR algorithms.
+    \item \texttt{flooding.py}: Implements BFS algorithms.
+    \item \texttt{visualization/}: A web-based interactive visualization to demonstrate the message flow.
 \end{itemize}
 
-\section{Performance Analysis}
+\section{Experiments & Results}
 
 \subsection{Experimental Setup}
 \begin{itemize}
-    \item \textbf{Environment:} Local 16-core machine using OpenMPI.
-    \item \textbf{Process Counts:} 4, 8, 9, 16.
-    \item \textbf{Data Sizes:} 100 to 10,000 elements.
+    \item \textbf{Platform:} Local Linux environment with OpenMPI.
+    \item \textbf{Processes:} Up to 16 processes.
+    \item \textbf{Metrics:} Execution Time, Communication Steps, Total Messages.
 \end{itemize}
 
-\subsection{Results}
+\subsection{DOR vs Flooding Comparison}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1.0\textwidth]{../results/real_performance_vs_datasize.png}
-    \caption{Performance vs Data Size for 2D/3D Broadcast and Gather, including Flooding.}
-    \label{fig:perf_vs_size}
+    \includegraphics[width=0.8\textwidth]{../results/dor_vs_flooding_time.png}
+    \caption{Execution Time: DOR vs Flooding. Flooding shows slightly higher time in this simulation due to Python/MPI overhead for handling many messages, despite fewer steps.}
+    \label{fig:time}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1.0\textwidth]{../results/real_2d_vs_3d_comparison.png}
-    \caption{Comparison of 2D vs 3D Mesh Performance.}
-    \label{fig:2d_vs_3d}
+    \includegraphics[width=0.8\textwidth]{../results/dor_vs_flooding_msgs.png}
+    \caption{Message Complexity: DOR vs Flooding. Flooding generates significantly more messages due to redundancy.}
+    \label{fig:msgs}
 \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1.0\textwidth]{../results/speedup_analysis.png}
-    \caption{Speedup Analysis of 3D over 2D Mesh.}
-    \label{fig:speedup}
-\end{figure}
+\subsection{2D vs 3D Comparison}
+As predicted, the 3D topology reduces the number of communication steps compared to 2D, especially as the number of processes increases.
 
-\section{Observations}
+\section{Inferences & Conclusion}
 \begin{enumerate}
-    \item \textbf{Flooding Performance:} The flooding algorithm demonstrated significantly lower latency for large data sizes compared to standard DOR, likely due to better link utilization and pipelining effects in the simulation.
-    \item \textbf{3D vs 2D:} 3D meshes generally outperformed 2D meshes for larger process counts due to lower network diameter.
-    \item \textbf{Scalability:} The algorithms scaled as expected with data size, following the linear latency-bandwidth model.
+    \item \textbf{Topology Matters:} 3D meshes provide better latency characteristics than 2D meshes for large systems.
+    \item \textbf{Algorithm Trade-off:} 
+    \begin{itemize}
+        \item \textbf{DOR} is bandwidth-efficient (fewer messages) and simpler to implement.
+        \item \textbf{Flooding} is latency-optimal (fewer steps) but consumes more bandwidth.
+    \end{itemize}
+    \item \textbf{Visualization:} The interactive tool successfully demonstrates the different propagation patterns (Wavefront vs Axis-aligned).
 \end{enumerate}
 
-\section{Conclusion}
-The project successfully demonstrated the trade-offs between different topology dimensions and routing algorithms. The flooding algorithm proved to be a highly efficient alternative for broadcast operations in this setup.
+The project successfully implemented and analyzed the requested topologies and algorithms, confirming theoretical models through experimentation and visualization.
 
 \end{document}
