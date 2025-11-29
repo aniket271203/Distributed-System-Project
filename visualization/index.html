@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesh Communication Visualization</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Mesh Communication Visualization</h1>
+            <p>Visualizing Broadcast and Gather algorithms on 2D and 3D Mesh Topologies</p>
+        </header>
+
+        <div class="main-content">
+            <div class="controls-panel">
+                <div class="control-group">
+                    <label>Topology</label>
+                    <div class="toggle-group">
+                        <button id="btn-2d" class="active">2D Mesh</button>
+                        <button id="btn-3d">3D Mesh</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Operation</label>
+                    <div class="toggle-group">
+                        <button id="btn-broadcast" class="active">Broadcast</button>
+                        <button id="btn-gather">Gather</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Algorithm</label>
+                    <select id="algo-select"
+                        style="width: 100%; padding: 8px; border-radius: 6px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color);">
+                        <option value="dor">Dimension Ordered (DOR)</option>
+                        <option value="flooding">Flooding (BFS)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="grid-size">Grid Size (<span id="size-label">4x4</span>)</label>
+                    <input type="range" id="grid-size" min="2" max="8" value="4">
+                </div>
+
+                <div class="control-group">
+                    <label for="anim-speed">Animation Speed</label>
+                    <input type="range" id="anim-speed" min="1" max="10" value="5">
+                </div>
+
+                <div class="actions">
+                    <button id="btn-play" class="primary">Play</button>
+                    <button id="btn-reset">Reset</button>
+                </div>
+
+                <div class="status-panel">
+                    <h3>Status</h3>
+                    <div id="step-description">Ready to start...</div>
+                    <div class="stats">
+                        <div>Steps: <span id="step-count">0</span></div>
+                        <div>Messages: <span id="msg-count">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="mesh-canvas"></canvas>
+                <div class="legend">
+                    <div class="legend-item"><span class="dot root"></span> Root (0)</div>
+                    <div class="legend-item"><span class="dot active"></span> Active/Has Data</div>
+                    <div class="legend-item"><span class="dot idle"></span> Idle/No Data</div>
+                    <div class="legend-item"><span class="line active"></span> Active Link</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

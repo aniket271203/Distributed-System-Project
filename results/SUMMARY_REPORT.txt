@@ -39,50 +39,8 @@ As p increases:
 ✓ results/scalability_2d.png
 ✓ results/latency_bandwidth_model.png
 ✓ results/network_metrics.png
- 
-6. PROFESSOR'S EVALUATION CRITERIA (INCLUDED IN THIS REPORT)
---------------------------------------------------------------------------------
-This project has been organized to explicitly satisfy the evaluation criteria
-listed by the instructor. Each bullet below maps to material present in the
-repository and in this report.
 
-- Technical details including features / algorithms:
-    • Detailed algorithm descriptions (2D/3D broadcast & gather) are in
-        Section 1 and `IMPLEMENTATION.md`.
-    • Complexity and performance models (T = ts + tw*m) are discussed in
-        Section 4 and implemented in `performance_analysis.py`.
-
-- Working / Functional Code and ability to explain the code:
-    • Source code: `mesh_topology.py`, `broadcast.py`, `gather.py`, `main.py`,
-        `collect_data.py`, `generate_report.py`, `plot_real_data.py`.
-    • Verification: `test_project.py` and `run_tests.sh` (p=4,8,27) show
-        functional correctness. Reproduce experiments with `mpiexec -n <p>
-        python collect_data.py`.
-    • Inline comments and `IMPLEMENTATION.md` provide explanations for each
-        algorithm step to aid presentation and viva-style questioning.
-
-- Observations / Plots / Datasets used:
-    • Generated plots are in `results/` (see Section 5). Use
-        `results/performance_data_p4.json`, `results/performance_data_p8.json`,
-        `results/performance_data_p27.json` for raw measurements.
-    • Detailed numerical tables and speedup analysis are in
-        `results/PERFORMANCE_REPORT.txt`.
-
-- Report:
-    • This `results/SUMMARY_REPORT.txt`, `results/PERFORMANCE_REPORT.txt`,
-        `REPORT_GRAPHS_GUIDE.md` and `IMPLEMENTATION.md` together form the
-        deliverable report package.
-
-- Presentation:
-    • Suggested slide order, figure captions and short speaking notes are in
-        `REPORT_GRAPHS_GUIDE.md` to help prepare the oral presentation.
-
-- Overall Results:
-    • Key numerical results and improvement summaries are available in
-        Section 2 and Section 3 above. Appendix contains the reproduction
-        commands and raw data files.
-
-7. CONCLUSION
+6. CONCLUSION
 --------------------------------------------------------------------------------
 The project successfully demonstrates that 3D mesh topologies provide
 superior performance characteristics compared to 2D meshes:
