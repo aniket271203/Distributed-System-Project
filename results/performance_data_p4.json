@@ -1,0 +1,80 @@
+{
+  "process_count": 4,
+  "tests": [
+    {
+      "data_size": 100,
+      "2d_broadcast": {
+        "time": 0.0008447170257568359,
+        "steps": 2,
+        "messages": 1
+      },
+      "2d_gather": {
+        "time": 0.00017976760864257812,
+        "steps": 2,
+        "messages": 2
+      },
+      "3d_broadcast": null,
+      "3d_gather": null
+    },
+    {
+      "data_size": 500,
+      "2d_broadcast": {
+        "time": 0.0001232624053955078,
+        "steps": 2,
+        "messages": 1
+      },
+      "2d_gather": {
+        "time": 0.000125885009765625,
+        "steps": 2,
+        "messages": 2
+      },
+      "3d_broadcast": null,
+      "3d_gather": null
+    },
+    {
+      "data_size": 1000,
+      "2d_broadcast": {
+        "time": 9.799003601074219e-05,
+        "steps": 2,
+        "messages": 1
+      },
+      "2d_gather": {
+        "time": 0.00010943412780761719,
+        "steps": 2,
+        "messages": 2
+      },
+      "3d_broadcast": null,
+      "3d_gather": null
+    },
+    {
+      "data_size": 5000,
+      "2d_broadcast": {
+        "time": 0.00011730194091796875,
+        "steps": 2,
+        "messages": 1
+      },
+      "2d_gather": {
+        "time": 0.00019979476928710938,
+        "steps": 2,
+        "messages": 2
+      },
+      "3d_broadcast": null,
+      "3d_gather": null
+    },
+    {
+      "data_size": 10000,
+      "2d_broadcast": {
+        "time": 0.00011777877807617188,
+        "steps": 2,
+        "messages": 1
+      },
+      "2d_gather": {
+        "time": 0.00048422813415527344,
+        "steps": 2,
+        "messages": 2
+      },
+      "3d_broadcast": null,
+      "3d_gather": null
+    }
+  ]
+}
