@@ -59,10 +59,20 @@
 
                 <div class="status-panel">
                     <h3>Status</h3>
-                    <div id="step-description">Ready to start...</div>
+                    <div class="status-description" id="step-description">Ready to start.</div>
                     <div class="stats">
-                        <div>Steps: <span id="step-count">0</span></div>
-                        <div>Messages: <span id="msg-count">0</span></div>
+                        <div class="status-item">
+                            <span class="label">Steps:</span>
+                            <span class="value" id="step-count">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Messages:</span>
+                            <span class="value" id="msg-count">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Verification:</span>
+                            <span class="value" id="verification-status">Pending</span>
+                        </div>
                     </div>
                 </div>
             </div>

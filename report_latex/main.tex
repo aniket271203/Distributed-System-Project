@@ -57,7 +57,36 @@ The project is implemented in Python using \texttt{mpi4py}.
     \item \texttt{visualization/}: A web-based interactive visualization to demonstrate the message flow.
 \end{itemize}
 
-\section{Experiments & Results}
+\section{Verification \& Validity}
+To ensure the correctness of our distributed algorithms, we implemented a rigorous verification mechanism within our ablation study script.
+
+\subsection{Methodology}
+We utilized \textbf{deterministic data generation} based on process ranks to verify both data integrity and source tracking.
+\begin{itemize}
+    \item \textbf{Broadcast Input:} The Root process generates an array where every element is its Rank ID (e.g., $[0.0, 0.0, \dots]$). All other processes start with empty buffers.
+    \item \textbf{Gather Input:} Each process generates an array where every element is its own Rank ID (e.g., Rank $i$ generates $[i, i, \dots]$).
+\end{itemize}
+
+\subsection{Verification Logic}
+\begin{enumerate}
+    \item \textbf{Broadcast Verification:}
+    After the operation, the Root collects the received data from all processes. It verifies that:
+    \begin{itemize}
+        \item Every process received a non-null array.
+        \item Every element in every received array matches the Root's Rank ID.
+    \end{itemize}
+    
+    \item \textbf{Gather Verification:}
+    The Root inspects the collected data structure. It verifies that:
+    \begin{itemize}
+        \item The collected data contains unique data chunks corresponding to every rank in the system ($0$ to $P-1$).
+        \item The total number of unique chunks matches the total number of processes.
+    \end{itemize}
+\end{enumerate}
+
+All experiments presented in the following section passed these verification checks, denoted by a "PASS" status in our automated testing logs.
+
+\section{Experiments \& Results}
 
 \subsection{Experimental Setup}
 \begin{itemize}
@@ -84,6 +113,38 @@ The project is implemented in Python using \texttt{mpi4py}.
 
 \subsection{2D vs 3D Comparison}
 As predicted, the 3D topology reduces the number of communication steps compared to 2D, especially as the number of processes increases.
+
+\subsection{Scalability Analysis (Large Data)}
+We conducted experiments with varying data sizes, ranging from $10^3$ to $10^7$ floats, to analyze bandwidth limitations. The table below summarizes the results for $10^7$ floats ($\approx 80$ MB) on 8 processes.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|}
+    \hline
+    \textbf{Mesh} & \textbf{Operation} & \textbf{Algorithm} & \textbf{Time (s)} & \textbf{Observation} \\
+    \hline
+    2D & Broadcast & DOR & \textbf{0.350} & Bandwidth Efficient \\
+    2D & Broadcast & Flooding & 1.056 & Network Saturation \\
+    \hline
+    3D & Broadcast & DOR & \textbf{0.479} & Bandwidth Efficient \\
+    3D & Broadcast & Flooding & 1.093 & Network Saturation \\
+    \hline
+    2D & Gather & DOR & 1.757 & Serialized Aggregation \\
+    2D & Gather & Flooding & \textbf{1.389} & Parallel Aggregation \\
+    \hline
+    3D & Gather & DOR & 1.815 & Serialized Aggregation \\
+    3D & Gather & Flooding & \textbf{0.895} & Parallel Aggregation \\
+    \hline
+    \end{tabular}
+    \caption{Performance Comparison for Large Data ($10^7$ floats)}
+    \label{tab:scalability}
+\end{table}
+
+\textbf{Key Findings:}
+\begin{itemize}
+    \item \textbf{Broadcast:} DOR is significantly faster (up to $3\times$) because it avoids redundant message transmissions. Flooding saturates the network bandwidth with duplicate packets.
+    \item \textbf{Gather:} Flooding (Convergecast) outperforms DOR, especially in 3D (up to $2\times$ faster). The BFS-tree structure of Flooding utilizes the mesh's parallel links more effectively than DOR's strict axis-by-axis aggregation, which creates bottlenecks at the root.
+\end{itemize}
 
 \section{Inferences & Conclusion}
 \begin{enumerate}

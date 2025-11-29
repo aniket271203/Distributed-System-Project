@@ -201,10 +201,26 @@ def gather_flooding(mesh, data, root=0):
                     n_dist = abs(root_coords[0] - n_coords[0]) + abs(root_coords[1] - n_coords[1]) + abs(root_coords[2] - n_coords[2])
                 
                 if n_dist == level:
-                    # Expect message from this child
-                    child_data = comm.recv(source=neighbor, tag=level)
-                    my_gathered_data.extend(child_data)
-                    msgs_recv += 1
+                    # Check if this neighbor (child) actually picked ME as parent
+                    # To do this, we simulate the child's parent selection logic
+                    child_neighbors = get_neighbors(mesh, neighbor)
+                    chosen_parent = -1
+                    for cn in child_neighbors:
+                        cn_coords = mesh._rank_to_coords(cn)
+                        if isinstance(mesh, Mesh2D):
+                            cn_dist = abs(root_coords[0] - cn_coords[0]) + abs(root_coords[1] - cn_coords[1])
+                        else:
+                            cn_dist = abs(root_coords[0] - cn_coords[0]) + abs(root_coords[1] - cn_coords[1]) + abs(root_coords[2] - cn_coords[2])
+                        
+                        if cn_dist == level - 1:
+                            chosen_parent = cn
+                            break
+                    
+                    # Only receive if I am the chosen parent
+                    if chosen_parent == rank:
+                        child_data = comm.recv(source=neighbor, tag=level)
+                        my_gathered_data.extend(child_data)
+                        msgs_recv += 1
         
         comm.Barrier()
         steps += 1

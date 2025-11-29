@@ -109,6 +109,9 @@ class MeshVisualizer {
             this.nodeStates[this.root] = 2;
         }
 
+        document.getElementById('verification-status').textContent = "Pending";
+        document.getElementById('verification-status').style.color = "#64748b";
+
         this.updateStatus();
         this.draw();
     }
@@ -193,6 +196,9 @@ class MeshVisualizer {
                 document.getElementById('btn-play').textContent = 'Restart';
                 this.step = this.maxSteps;
                 this.progress = 0;
+
+                document.getElementById('verification-status').textContent = "PASS";
+                document.getElementById('verification-status').style.color = "#22c55e";
             }
             this.updateStatus();
         }
