@@ -36,15 +36,11 @@ class Mesh2D(MeshTopology):
     
     def __init__(self, comm):
         super().__init__(comm)
-        # Calculate grid dimensions
-        self.grid_size = int(math.sqrt(self.size))
-        if self.grid_size * self.grid_size != self.size:
-            if self.rank == 0:
-                print(f"Warning: {self.size} processes cannot form a perfect square grid")
-            self.grid_size = int(math.ceil(math.sqrt(self.size)))
+        # Calculate grid dimensions - find best factors for R * C = size
+        self.rows, self.cols = self._find_best_2d_dims(self.size)
         
-        self.rows = self.grid_size
-        self.cols = self.grid_size
+        if self.rank == 0:
+            print(f"2D Mesh: {self.rows}x{self.cols} = {self.rows*self.cols} nodes")
         
         # Calculate coordinates for this rank
         self.coords = self._rank_to_coords(self.rank)
@@ -52,6 +48,16 @@ class Mesh2D(MeshTopology):
         # Calculate neighbors
         self._calculate_neighbors()
     
+    def _find_best_2d_dims(self, size):
+        """Find dimensions (r, c) such that r*c = size and |r-c| is minimized"""
+        best_r, best_c = 1, size
+        for r in range(1, int(math.sqrt(size)) + 1):
+            if size % r == 0:
+                c = size // r
+                if abs(r - c) < abs(best_r - best_c):
+                    best_r, best_c = r, c
+        return best_r, best_c
+
     def _rank_to_coords(self, rank):
         """Convert rank to (row, col) coordinates"""
         row = rank // self.cols
@@ -135,21 +141,8 @@ class Mesh3D(MeshTopology):
     
     def __init__(self, comm):
         super().__init__(comm)
-        # Calculate grid dimensions - try to make cube
-        self.grid_size = int(round(self.size ** (1/3)))
-        
-        # Adjust to get closest cube
-        while self.grid_size ** 3 > self.size:
-            self.grid_size -= 1
-        while self.grid_size ** 3 < self.size:
-            if (self.grid_size + 1) ** 3 <= self.size + self.grid_size:
-                self.grid_size += 1
-            else:
-                break
-        
-        self.x_dim = self.grid_size
-        self.y_dim = self.grid_size
-        self.z_dim = self.grid_size
+        # Calculate grid dimensions - find best factors for X * Y * Z = size
+        self.x_dim, self.y_dim, self.z_dim = self._find_best_3d_dims(self.size)
         
         if self.rank == 0:
             print(f"3D Mesh: {self.x_dim}x{self.y_dim}x{self.z_dim} = {self.x_dim*self.y_dim*self.z_dim} nodes")
@@ -159,6 +152,26 @@ class Mesh3D(MeshTopology):
         
         # Calculate neighbors
         self._calculate_neighbors()
+
+    def _find_best_3d_dims(self, size):
+        """Find dimensions (x, y, z) such that x*y*z = size and dimensions are as close as possible"""
+        best_dims = (1, 1, size)
+        min_diff = float('inf')
+        
+        # Iterate to find factors
+        for x in range(1, int(size**(1/3)) + 2):
+            if size % x == 0:
+                rem = size // x
+                for y in range(1, int(math.sqrt(rem)) + 1):
+                    if rem % y == 0:
+                        z = rem // y
+                        # Calculate "closeness" (e.g., max difference or variance)
+                        diff = max(abs(x-y), abs(y-z), abs(x-z))
+                        if diff < min_diff:
+                            min_diff = diff
+                            best_dims = sorted((x, y, z)) # Sort to keep dimensions consistent
+        
+        return best_dims
     
     def _rank_to_coords(self, rank):
         """Convert rank to (x, y, z) coordinates"""

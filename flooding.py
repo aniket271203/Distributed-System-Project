@@ -106,11 +106,23 @@ def broadcast_flooding(mesh, data, root=0):
         
         # If I am at level+1, receive from a neighbor at level
         elif dist == level + 1:
-            # Receive from ANY neighbor at 'level'
-            # We only need one copy
-            status = MPI.Status()
-            data = comm.recv(source=MPI.ANY_SOURCE, tag=level, status=status)
-            received = True
+            # Receive from ALL neighbors at distance 'level'
+            expected_msgs = 0
+            neighbors = get_neighbors(mesh, rank)
+            for neighbor in neighbors:
+                n_coords = mesh._rank_to_coords(neighbor)
+                if isinstance(mesh, Mesh2D):
+                    n_dist = abs(root_coords[0] - n_coords[0]) + abs(root_coords[1] - n_coords[1])
+                else:
+                    n_dist = abs(root_coords[0] - n_coords[0]) + abs(root_coords[1] - n_coords[1]) + abs(root_coords[2] - n_coords[2])
+                
+                if n_dist == level:
+                    expected_msgs += 1
+            
+            for _ in range(expected_msgs):
+                status = MPI.Status()
+                data = comm.recv(source=MPI.ANY_SOURCE, tag=level, status=status)
+                received = True
             
         # Synchronization to define a "step" clearly for analysis
         # In real flooding, this barrier isn't needed, but helps measure 'steps' as 'levels'

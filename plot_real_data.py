@@ -36,6 +36,7 @@ def plot_real_performance_vs_datasize():
         times_2d_gather = []
         times_3d_bcast = []
         times_3d_gather = []
+        times_2d_flood = []
         
         for test in data['tests']:
             data_sizes.append(test['data_size'])
@@ -48,10 +49,14 @@ def plot_real_performance_vs_datasize():
                 times_3d_bcast.append(test['3d_broadcast']['time'] * 1000)
             if test['3d_gather']:
                 times_3d_gather.append(test['3d_gather']['time'] * 1000)
+            if '2d_broadcast_flooding' in test and test['2d_broadcast_flooding']:
+                times_2d_flood.append(test['2d_broadcast_flooding']['time'] * 1000)
         
         # Plot 2D Broadcast
         if times_2d_bcast:
-            axes[0, 0].plot(data_sizes, times_2d_bcast, 'o-', label=f'p={p}', linewidth=2, markersize=6)
+            axes[0, 0].plot(data_sizes, times_2d_bcast, 'o-', label=f'p={p} (Std)', linewidth=2, markersize=6)
+        if times_2d_flood:
+            axes[0, 0].plot(data_sizes, times_2d_flood, 'x--', label=f'p={p} (Flood)', linewidth=1.5, markersize=6)
         
         # Plot 2D Gather
         if times_2d_gather:
@@ -242,17 +247,41 @@ def generate_comprehensive_report():
         report.append(f"\nProcess Count: {p}")
         report.append("-"*80)
         
-        # Calculate grid dimensions
-        grid_2d = int(np.sqrt(p))
-        grid_3d = int(round(p ** (1/3)))
+        # Calculate grid dimensions using the same logic as mesh_topology.py
+        import math
         
-        report.append(f"2D Mesh Configuration: {grid_2d}×{grid_2d}")
-        if p >= 8:
-            report.append(f"3D Mesh Configuration: {grid_3d}×{grid_3d}×{grid_3d}")
+        # 2D Dimensions
+        best_r, best_c = 1, p
+        for r in range(1, int(math.sqrt(p)) + 1):
+            if p % r == 0:
+                c = p // r
+                if abs(r - c) < abs(best_r - best_c):
+                    best_r, best_c = r, c
+        
+        report.append(f"2D Mesh Configuration: {best_r}×{best_c}")
+        
+        if p >= 4:
+            # 3D Dimensions
+            best_dims = (1, 1, p)
+            min_diff = float('inf')
+            
+            for x in range(1, int(p**(1/3)) + 2):
+                if p % x == 0:
+                    rem = p // x
+                    for y in range(1, int(math.sqrt(rem)) + 1):
+                        if rem % y == 0:
+                            z = rem // y
+                            diff = max(abs(x-y), abs(y-z), abs(x-z))
+                            if diff < min_diff:
+                                min_diff = diff
+                                best_dims = sorted((x, y, z))
+            
+            x, y, z = best_dims
+            report.append(f"3D Mesh Configuration: {x}×{y}×{z}")
         report.append("")
         
-        report.append(f"{'Data Size':<12} {'Operation':<15} {'2D Time (ms)':<15} {'3D Time (ms)':<15} {'Speedup':<10}")
-        report.append("-"*80)
+        report.append(f"{'Data Size':<12} {'Operation':<15} {'2D Time (ms)':<15} {'3D Time (ms)':<15} {'Flood (ms)':<12} {'Speedup':<10}")
+        report.append("-"*95)
         
         for test in data['tests']:
             size = test['data_size']
@@ -261,9 +290,10 @@ def generate_comprehensive_report():
             if test['2d_broadcast']:
                 time_2d = test['2d_broadcast']['time'] * 1000
                 time_3d = test['3d_broadcast']['time'] * 1000 if test['3d_broadcast'] else 0
+                time_flood = test['2d_broadcast_flooding']['time'] * 1000 if '2d_broadcast_flooding' in test else 0
                 speedup = time_2d / time_3d if time_3d > 0 else 0
                 
-                report.append(f"{size:<12} {'Broadcast':<15} {time_2d:<15.3f} {time_3d:<15.3f} {speedup:<10.2f}x")
+                report.append(f"{size:<12} {'Broadcast':<15} {time_2d:<15.3f} {time_3d:<15.3f} {time_flood:<12.3f} {speedup:<10.2f}x")
             
             # Gather
             if test['2d_gather']:
@@ -271,7 +301,7 @@ def generate_comprehensive_report():
                 time_3d = test['3d_gather']['time'] * 1000 if test['3d_gather'] else 0
                 speedup = time_2d / time_3d if time_3d > 0 else 0
                 
-                report.append(f"{size:<12} {'Gather':<15} {time_2d:<15.3f} {time_3d:<15.3f} {speedup:<10.2f}x")
+                report.append(f"{size:<12} {'Gather':<15} {time_2d:<15.3f} {time_3d:<15.3f} {'-':<12} {speedup:<10.2f}x")
         
         report.append("")
     

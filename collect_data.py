@@ -8,7 +8,7 @@ import numpy as np
 import json
 import time
 from mesh_topology import Mesh2D, Mesh3D
-from broadcast import broadcast_2d_mesh, broadcast_3d_mesh
+from broadcast import broadcast_2d_mesh, broadcast_3d_mesh, broadcast_2d_mesh_pipelined, broadcast_2d_mesh_binary_tree, broadcast_2d_mesh_flooding
 from gather import gather_2d_mesh, gather_3d_mesh
 
 def collect_performance_data():
@@ -49,15 +49,27 @@ def collect_performance_data():
         
         _, time_2d_bcast, steps_2d_bcast, msgs_2d_bcast = broadcast_2d_mesh(mesh_2d, data, root=0)
         
+        # 2D Broadcast - Flooding
+        if rank == 0:
+            data_flood = np.random.rand(data_size) # Use a fresh data for flooding to ensure fair comparison
+        else:
+            data_flood = None
+        _, time_flood, steps_flood, msgs_flood = broadcast_2d_mesh_flooding(mesh_2d, data_flood, root=0)
+        
         # 2D Gather
-        data = np.random.rand(data_size)
-        _, time_2d_gather, steps_2d_gather, msgs_2d_gather = gather_2d_mesh(mesh_2d, data, root=0)
+        data_gather = np.random.rand(data_size) # Use fresh data for gather
+        _, time_2d_gather, steps_2d_gather, msgs_2d_gather = gather_2d_mesh(mesh_2d, data_gather, root=0)
         
         if rank == 0:
             test_result['2d_broadcast'] = {
                 'time': time_2d_bcast,
                 'steps': steps_2d_bcast,
                 'messages': msgs_2d_bcast
+            }
+            test_result['2d_broadcast_flooding'] = {
+                'time': time_flood,
+                'steps': steps_flood,
+                'messages': msgs_flood
             }
             test_result['2d_gather'] = {
                 'time': time_2d_gather,
@@ -66,7 +78,7 @@ def collect_performance_data():
             }
         
         # 3D Mesh Tests (if enough processes)
-        if size >= 8:
+        if size >= 4: # Minimum 4 nodes for a reasonable 3D mesh (e.g. 1x2x2)
             mesh_3d = Mesh3D(comm)
             
             # 3D Broadcast

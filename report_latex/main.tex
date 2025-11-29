@@ -1,0 +1,88 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+\title{Distributed Systems Project: Mesh Topology Communication Analysis}
+\author{Aniket Gupta}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+This project explores communication algorithms on 2D and 3D mesh topologies using MPI. We implemented and analyzed Broadcast and Gather operations, comparing Dimension-Order Routing (DOR) with a Flooding algorithm.
+
+\section{Mesh Topology Implementation}
+We implemented a generalized mesh topology that adapts to the number of available processes ($P$).
+\begin{itemize}
+    \item \textbf{2D Mesh:} $N \times M$ grid where $N \times M \approx P$.
+    \item \textbf{3D Mesh:} $N \times M \times K$ grid where $N \times M \times K \approx P$.
+\end{itemize}
+The topology is constructed using MPI communicators and Cartesian mapping.
+
+\section{Algorithms}
+
+\subsection{Dimension-Order Routing (DOR)}
+Standard broadcast/gather propagates along axes sequentially (e.g., X then Y then Z).
+\begin{itemize}
+    \item \textbf{Broadcast:} Root sends to row leaders, who then send to their columns.
+    \item \textbf{Gather:} Leaves send to row leaders, who aggregate and send to root.
+\end{itemize}
+
+\subsection{Flooding (Wavefront)}
+A flooding algorithm was implemented to simulate wavefront propagation.
+\begin{itemize}
+    \item Nodes receive data from any neighbor at distance $d$.
+    \item Nodes forward data to all neighbors at distance $d+1$.
+    \item This approach minimizes latency in irregular meshes but increases message complexity.
+\end{itemize}
+
+\section{Performance Analysis}
+
+\subsection{Experimental Setup}
+\begin{itemize}
+    \item \textbf{Environment:} Local 16-core machine using OpenMPI.
+    \item \textbf{Process Counts:} 4, 8, 9, 16.
+    \item \textbf{Data Sizes:} 100 to 10,000 elements.
+\end{itemize}
+
+\subsection{Results}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{../results/real_performance_vs_datasize.png}
+    \caption{Performance vs Data Size for 2D/3D Broadcast and Gather, including Flooding.}
+    \label{fig:perf_vs_size}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{../results/real_2d_vs_3d_comparison.png}
+    \caption{Comparison of 2D vs 3D Mesh Performance.}
+    \label{fig:2d_vs_3d}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{../results/speedup_analysis.png}
+    \caption{Speedup Analysis of 3D over 2D Mesh.}
+    \label{fig:speedup}
+\end{figure}
+
+\section{Observations}
+\begin{enumerate}
+    \item \textbf{Flooding Performance:} The flooding algorithm demonstrated significantly lower latency for large data sizes compared to standard DOR, likely due to better link utilization and pipelining effects in the simulation.
+    \item \textbf{3D vs 2D:} 3D meshes generally outperformed 2D meshes for larger process counts due to lower network diameter.
+    \item \textbf{Scalability:} The algorithms scaled as expected with data size, following the linear latency-bandwidth model.
+\end{enumerate}
+
+\section{Conclusion}
+The project successfully demonstrated the trade-offs between different topology dimensions and routing algorithms. The flooding algorithm proved to be a highly efficient alternative for broadcast operations in this setup.
+
+\end{document}

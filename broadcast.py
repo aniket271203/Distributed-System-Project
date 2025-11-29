@@ -375,6 +375,79 @@ def broadcast_2d_mesh_binary_tree(mesh, data, root=0):
     return data, end_time - start_time, communication_steps, messages_sent
 
 
+def broadcast_2d_mesh_flooding(mesh, data, root=0):
+    """
+    Flooding Broadcast on 2D Mesh
+    Algorithm:
+    1. Root sends to all neighbors.
+    2. Any node receiving data sends to all its neighbors (except sender).
+    3. To prevent cycles, we track visited state (implied by having data).
+    """
+    comm = mesh.comm
+    rank = mesh.get_rank()
+    
+    start_time = time.time()
+    communication_steps = 0
+    messages_sent = 0
+    
+    # Neighbors
+    neighbors = mesh.get_neighbors()
+    neighbor_ranks = list(neighbors.values())
+    
+    has_data = (rank == root)
+    received_from = -1
+    
+    # We need a loop to simulate time steps or use non-blocking I/O.
+    # For simplicity in this synchronous MPI environment, we can't easily do "real" flooding 
+    # where everyone talks at once without deadlocks or complex async.
+    # However, we can simulate the "wavefront".
+    # Distance from root:
+    # d = |r - r0| + |c - c0| (Manhattan distance)
+    # In step k, all nodes at distance k receive data.
+    # In step k+1, they send to neighbors at distance k+1.
+    
+    root_coords = mesh._rank_to_coords(root)
+    my_coords = mesh.coords
+    dist = abs(my_coords[0] - root_coords[0]) + abs(my_coords[1] - root_coords[1])
+    max_dist = mesh.rows + mesh.cols # Upper bound
+    
+    # Step-by-step wavefront propagation
+    for d in range(max_dist + 1):
+        # If I am at distance d, I have data (received at step d-1 or d=0 for root)
+        # I send to neighbors at distance d+1
+        
+        if dist == d:
+            # I have data, send to neighbors at dist d+1
+            for direction, n_rank in neighbors.items():
+                n_coords = mesh._rank_to_coords(n_rank)
+                n_dist = abs(n_coords[0] - root_coords[0]) + abs(n_coords[1] - root_coords[1])
+                
+                if n_dist == d + 1:
+                    comm.send(data, dest=n_rank, tag=d)
+                    messages_sent += 1
+        
+        elif dist == d + 1:
+            # Receive from ALL neighbors at distance d to prevent sender blocking
+            expected_msgs = 0
+            for direction, n_rank in neighbors.items():
+                n_coords = mesh._rank_to_coords(n_rank)
+                n_dist = abs(n_coords[0] - root_coords[0]) + abs(n_coords[1] - root_coords[1])
+                if n_dist == d:
+                    expected_msgs += 1
+            
+            for _ in range(expected_msgs):
+                status = MPI.Status()
+                data = comm.recv(source=MPI.ANY_SOURCE, tag=d, status=status)
+                has_data = True
+                received_from = status.Get_source()
+        
+        communication_steps += 1
+        comm.Barrier() # Synchronize wavefront
+        
+    end_time = time.time()
+    return data, end_time - start_time, communication_steps, messages_sent
+
+
 def measure_broadcast_performance(mesh_type='2D', data_size=1000, root=0, algorithm='standard'):
     """
     Measure broadcast performance with latency-bandwidth model
