@@ -2,263 +2,501 @@
 
 **Operations:** Broadcast (Bcast) and Gather  
 **Topologies:** 2D and 3D Mesh  
-**Author:** Aniket Gupta - 2022101099 & Samarth Srikar - 2022101106
+**Algorithms:** Dimension-Ordered Routing (DOR) and Flooding (BFS)  
+**Authors:** Aniket Gupta (2022101099) & Samarth Srikar (2022101106)
 
-## Project Overview
+---
 
-This project implements and analyzes collective communication operations on mesh-based networks, focusing on Broadcast and Gather operations. The implementation follows the exact specifications from the project scope document.
+## 📋 Table of Contents
 
-## Features
+1. [Project Overview](#project-overview)
+2. [Features](#features)
+3. [File Structure](#file-structure)
+4. [Installation](#installation)
+5. [Usage](#usage)
+6. [Algorithm Design](#algorithm-design)
+7. [Implementation Details](#implementation-details)
+8. [Evaluation Methodology](#evaluation-methodology)
+9. [Experimental Results](#experimental-results)
+10. [Best Configuration](#best-configuration)
+11. [Visualizations](#visualizations)
+12. [References](#references)
 
-- ✅ **Mesh Topology Creation** (2D and 3D)
-- ✅ **Broadcast Operation** on 2D and 3D meshes
-- ✅ **Gather Operation** on 2D and 3D meshes
-- ✅ **Performance Analysis** using latency-bandwidth model
-- ✅ **Comparative Analysis** between 2D and 3D topologies
+---
 
-## File Structure
+## 🎯 Project Overview
+
+This project implements and analyzes collective communication operations on mesh-based networks. We compare:
+
+- **Topologies:** 2D Mesh vs 3D Mesh
+- **Algorithms:** Dimension-Ordered Routing (DOR) vs Flooding (BFS)
+- **Operations:** Broadcast and Gather
+
+The goal is to determine the optimal configuration for minimizing latency (sequential hops) and bandwidth usage (message count) in distributed systems.
+
+---
+
+## ✨ Features
+
+- ✅ **Mesh Topology Creation** - 2D and 3D mesh with automatic dimension calculation
+- ✅ **Broadcast Operation** - Root disseminates data to all nodes
+- ✅ **Gather Operation** - All nodes send data to root
+- ✅ **DOR Algorithm** - Dimension-ordered routing for optimal message count
+- ✅ **Flooding Algorithm** - BFS-based routing for fault tolerance
+- ✅ **Performance Analysis** - Latency-bandwidth model simulation
+- ✅ **Comparative Visualization** - Comprehensive plots comparing all configurations
+- ✅ **Simulation Mode** - Run experiments without MPI hardware
+
+---
+
+## 📁 File Structure
 
 ```
 Project/
-├── mesh_topology.py         # Mesh topology implementation (2D & 3D)
-├── broadcast.py             # Broadcast operations
-├── gather.py                # Gather operations
+├── mesh_topology.py         # 2D and 3D mesh topology implementation
+├── broadcast.py             # Broadcast operations (DOR)
+├── gather.py                # Gather operations (DOR)
+├── flooding.py              # Flooding algorithm implementation
+├── ablation_study.py        # DOR vs Flooding comparison with MPI
+├── simulation_study.py      # Simulation-based experiments (no MPI required)
 ├── main.py                  # Main driver program
-├── performance_analysis.py  # Performance measurement and analysis
+├── performance_analysis.py  # Performance measurement utilities
 ├── requirements.txt         # Python dependencies
-└── README.md               # This file
+├── README.md                # This file
+├── ANALYSIS.md              # Detailed experimental analysis
+└── results/                 # Generated plots and reports
+    ├── simulation_comparison.png
+    ├── message_complexity.png
+    ├── steps_2d_vs_3d.png
+    ├── combined_analysis.png
+    └── ...
 ```
 
-## Requirements
+---
+
+## 🔧 Installation
+
+### Prerequisites
 
 - Python 3.7+
-- MPI implementation (OpenMPI or MPICH)
-- mpi4py
-- numpy
+- MPI implementation (OpenMPI or MPICH) - optional for simulation mode
 
-## Installation
+### Install MPI (Optional - for real MPI experiments)
 
-1. Install MPI (if not already installed):
 ```bash
-# On Ubuntu/Debian
+# Ubuntu/Debian
 sudo apt-get install openmpi-bin libopenmpi-dev
 
-# On macOS
+# macOS
 brew install open-mpi
 ```
 
-2. Install Python dependencies:
+### Install Python Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-## Usage
+---
 
-### Running the Complete Project
+## 🚀 Usage
 
-Run all tests with default settings (4 processes):
+### Simulation Mode (No MPI Required)
+
+Run comprehensive simulation comparing all configurations:
+
 ```bash
-mpiexec -n 4 python main.py
+python simulation_study.py
 ```
 
-Run with 16 processes (for better mesh visualization):
+This generates:
+- Detailed console output with results
+- Visualization plots in `results/` directory
+
+### MPI Mode
+
+Run with actual MPI processes:
+
 ```bash
+# 16 processes (4x4 2D mesh)
 mpiexec -n 16 python main.py
-```
 
-Run with 27 processes (perfect 3D cube):
-```bash
+# 27 processes (3x3x3 3D cube)
 mpiexec -n 27 python main.py
+
+# Ablation study: DOR vs Flooding
+mpiexec -n 16 python ablation_study.py
 ```
 
-Run with custom data size:
-```bash
-mpiexec -n 16 python main.py 5000
-```
+### Individual Components
 
-### Running Individual Components
-
-**Test Broadcast only:**
 ```bash
+# Test Broadcast only
 mpiexec -n 16 python broadcast.py
-```
 
-**Test Gather only:**
-```bash
+# Test Gather only
 mpiexec -n 16 python gather.py
+
+# Test Flooding
+mpiexec -n 16 python flooding.py
 ```
 
-**Run Performance Analysis:**
-```bash
-mpiexec -n 16 python performance_analysis.py
-```
+---
 
-## Algorithm Design
+## 📐 Algorithm Design
 
-### Broadcast on 2D Mesh
+### Mesh Topology Construction
 
-**Algorithm:**
-1. Broadcast message along the root's row
-2. Row nodes become column leaders
-3. Each leader broadcasts message down its column
-
-**Runtime:** `T_bcast^2D = 2(√p - 1)ts + (p - 1)tw*m`
-
-### Gather on 2D Mesh
-
-**Algorithm:**
-1. Each row gathers data toward row leaders (first column)
-2. Row leaders send data up the root column to root
-
-**Runtime:** `T_gather^2D = 2(√p - 1)ts + (p - 1)tw*m`
-
-### Broadcast on 3D Mesh
-
-**Algorithm:**
-1. Broadcast along root's x-axis
-2. Broadcast along y-axis in root's plane
-3. Broadcast along z-axis from each plane leader
-
-**Runtime:** `T_bcast^3D = 3(∛p - 1)ts + (p - 1)tw*m`
-
-### Gather on 3D Mesh
-
-**Algorithm:**
-1. Gather along x-axis to x=0 plane leaders
-2. Gather along y-axis to (x=0, y=0) line leaders
-3. Gather along z-axis to root
-
-**Runtime:** `T_gather^3D = 3(∛p - 1)ts + (p - 1)tw*m`
-
-## Latency-Bandwidth Model
-
-The project uses the standard latency-bandwidth model:
+#### 2D Mesh
 
 ```
-T_msg = ts + tw * m
+Coordinate Mapping:
+  rank → (row, col)
+  row = rank // cols
+  col = rank % cols
+
+Neighbors: North, South, East, West (4 neighbors max)
+
+Example 4×4 Mesh:
+┌───┬───┬───┬───┐
+│ 0 │ 1 │ 2 │ 3 │
+├───┼───┼───┼───┤
+│ 4 │ 5 │ 6 │ 7 │
+├───┼───┼───┼───┤
+│ 8 │ 9 │10 │11 │
+├───┼───┼───┼───┤
+│12 │13 │14 │15 │
+└───┴───┴───┴───┘
 ```
+
+#### 3D Mesh
+
+```
+Coordinate Mapping:
+  rank → (x, y, z)
+  z = rank // (x_dim × y_dim)
+  y = (rank % (x_dim × y_dim)) // x_dim
+  x = rank % x_dim
+
+Neighbors: ±X, ±Y, ±Z directions (6 neighbors max)
+```
+
+### DOR (Dimension-Ordered Routing)
+
+Routes messages by traversing one dimension at a time in a fixed order.
+
+#### 2D DOR Broadcast Algorithm
+
+```
+Phase 1: Row Broadcast
+  └─ Root broadcasts along its row
+  └─ Sequential hops: (cols - 1)
+
+Phase 2: Column Broadcast (Parallel)
+  └─ Each row node broadcasts down its column
+  └─ Sequential hops: (rows - 1)
+
+Total Hops: (rows - 1) + (cols - 1)
+Total Messages: (cols - 1) + cols × (rows - 1) = p - 1
+```
+
+**Visual Example (4×4 mesh):**
+```
+Phase 1:    0 → 1 → 2 → 3     (3 hops)
+Phase 2:    ↓   ↓   ↓   ↓     (3 hops)
+            4   5   6   7
+            ↓   ↓   ↓   ↓
+            8   9  10  11
+            ↓   ↓   ↓   ↓
+           12  13  14  15
+           
+Total: 6 hops
+```
+
+#### 3D DOR Broadcast Algorithm
+
+```
+Phase 1: X-axis Broadcast     → (x_dim - 1) hops
+Phase 2: Y-axis Broadcast     → (y_dim - 1) hops
+Phase 3: Z-axis Broadcast     → (z_dim - 1) hops
+
+Total Hops: (x - 1) + (y - 1) + (z - 1)
+Total Messages: p - 1
+```
+
+### Flooding (BFS) Algorithm
+
+Each node forwards data to ALL its neighbors.
+
+```
+Level 0: Root has data
+Level 1: Root → all neighbors
+Level 2: Level-1 nodes → all their neighbors (except sender)
+...
+Level k: All nodes at Manhattan distance k receive data
+
+Sequential Hops: Maximum Manhattan distance from root
+Total Messages: Number of edges in mesh
+                (each node forwards to all neighbors except the one it received from)
+```
+
+**Key Difference from DOR:**
+
+| Aspect | DOR | Flooding |
+|--------|-----|----------|
+| Message Count | p - 1 | Number of edges |
+| Redundancy | None | Minimal |
+| Fault Tolerance | Low | High |
+
+---
+
+## 📊 Implementation Details
+
+### Mesh2D Class
+
+```python
+class Mesh2D(MeshTopology):
+    def __init__(self, comm):
+        self.grid_size = int(math.sqrt(size))
+        self.rows = self.cols = self.grid_size
+        self.coords = self._rank_to_coords(rank)
+        self._calculate_neighbors()
+    
+    def _rank_to_coords(self, rank):
+        return (rank // self.cols, rank % self.cols)
+    
+    def _calculate_neighbors(self):
+        # Add north, south, east, west neighbors
+```
+
+### Mesh3D Class
+
+```python
+class Mesh3D(MeshTopology):
+    def __init__(self, comm):
+        self.grid_size = int(round(size ** (1/3)))
+        self.x_dim = self.y_dim = self.z_dim = self.grid_size
+        self.coords = self._rank_to_coords(rank)
+        self._calculate_neighbors()
+    
+    def _rank_to_coords(self, rank):
+        z = rank // (x_dim * y_dim)
+        y = (rank % (x_dim * y_dim)) // x_dim
+        x = rank % x_dim
+        return (x, y, z)
+```
+
+### Broadcast Implementation
+
+```python
+def broadcast_2d_mesh(mesh, data, root=0):
+    # Phase 1: Row broadcast using MPI Split
+    row_comm = comm.Split(color=row, key=col)
+    data = row_comm.bcast(data, root=root_col)
+    
+    # Phase 2: Column broadcast
+    col_comm = comm.Split(color=col, key=row)
+    data = col_comm.bcast(data, root=root_row)
+    
+    # Calculate sequential hops
+    communication_steps = (cols - 1) + (rows - 1)
+    return data, time, steps, messages
+```
+
+### Flooding Implementation
+
+```python
+def broadcast_flooding(mesh, data, root=0):
+    # BFS level-by-level propagation
+    for level in range(max_distance):
+        if my_distance == level and have_data:
+            # Send to ALL neighbors
+            for neighbor in get_neighbors(mesh, rank):
+                comm.send(data, dest=neighbor)
+                msgs_sent += 1
+        
+        elif my_distance == level + 1:
+            # Receive from any neighbor
+            data = comm.recv(source=MPI.ANY_SOURCE)
+    
+    return data, time, max_hops, msgs_sent
+```
+
+---
+
+## 📈 Evaluation Methodology
+
+### Metrics
+
+1. **Sequential Hops (Latency)**
+   - Number of sequential message-passing steps
+   - Lower is better
+
+2. **Message Complexity (Bandwidth)**
+   - Total messages transmitted
+   - Lower is better
+
+3. **Simulated Time**
+   - Based on latency-bandwidth model: `T = hops × (ts + tw × m)`
+   - ts = 10 μs (startup latency)
+   - tw = 10 ns/byte (bandwidth time)
+   - m = 8000 bytes (message size)
+
+### Comparison Approach
+
+- **Fair Comparison:** Match node counts between 2D and 3D
+- **Configurations tested:**
+
+| Nodes | 2D Mesh | 3D Mesh |
+|-------|---------|---------|
+| 8 | 2×4 | 2×2×2 |
+| 16 | 4×4 | 2×2×4 |
+| 64 | 8×8 | 4×4×4 |
+| 256 | 16×16 | 4×8×8 |
+
+---
+
+## 📊 Experimental Results
+
+### Sequential Hops Comparison
+
+| Nodes | 2D DOR | 3D DOR | Improvement |
+|-------|--------|--------|-------------|
+| 8 | 4 | 3 | **25.0%** |
+| 16 | 6 | 5 | **16.7%** |
+| 64 | 14 | 9 | **35.7%** |
+| 256 | 30 | 17 | **43.3%** |
+
+### Message Complexity Comparison
+
+| Nodes | DOR Messages | Flooding Messages | Ratio |
+|-------|--------------|-------------------|-------|
+| 16 | 15 | 24 | 1.6× |
+| 64 | 63 | 112 | 1.8× |
+| 256 | 255 | 480 | 1.9× |
+
+### Key Findings
+
+1. **3D mesh reduces latency by up to 43%** compared to 2D for large networks
+2. **DOR uses 1.5-2× fewer messages** than flooding
+3. **Improvement grows with network size** due to O(∛p) vs O(√p) scaling
+
+---
+
+## 🏆 Best Configuration
+
+### Winner: **3D Mesh + DOR Algorithm**
+
+| Criterion | Performance | Score |
+|-----------|-------------|-------|
+| Latency | Minimum (3(∛p - 1) hops) | ⭐⭐⭐⭐⭐ |
+| Bandwidth | Optimal (p - 1 messages) | ⭐⭐⭐⭐⭐ |
+| Scalability | Best (O(∛p) growth) | ⭐⭐⭐⭐⭐ |
+| Predictability | Deterministic | ⭐⭐⭐⭐⭐ |
+| Implementation | Moderate complexity | ⭐⭐⭐⭐ |
+
+### Why 3D + DOR is Optimal
+
+1. **Latency Advantage:**
+   - 3D mesh has smaller diameter: 3(∛p - 1) vs 2(√p - 1)
+   - For 256 nodes: 17 hops vs 30 hops (43% reduction)
+
+2. **Bandwidth Efficiency:**
+   - DOR sends exactly p - 1 messages (minimum possible)
+   - Flooding wastes bandwidth with redundant messages
+
+3. **Scalability:**
+   - ∛p grows slower than √p
+   - Advantage increases with network size
+
+4. **Practical Considerations:**
+   - Deterministic routing → predictable performance
+   - No message duplication → reduced network congestion
+
+### Recommendation by Use Case
+
+| Use Case | Recommendation |
+|----------|----------------|
+| HPC Clusters | 3D + DOR |
+| Fault-Tolerant Systems | 3D + Flooding |
+| Simple Deployments | 2D + DOR |
+| Small Networks (<8 nodes) | 2D + DOR |
+
+---
+
+## 📉 Visualizations
+
+Generated plots in `results/` directory:
+
+| File | Description |
+|------|-------------|
+| `simulation_comparison.png` | 4-panel comparison of all configurations |
+| `message_complexity.png` | DOR vs Flooding message count |
+| `steps_2d_vs_3d.png` | Sequential hops with improvement % |
+| `combined_analysis.png` | Comprehensive 4-panel analysis |
+| `scalability_analysis.png` | Theoretical scaling curves |
+| `time_comparison.png` | Simulated time vs nodes |
+| `comparable_configs.png` | Direct 2D vs 3D comparison |
+
+---
+
+## 🔬 Theoretical Background
+
+### Latency-Bandwidth Model
+
+```
+T_msg = ts + tw × m
 
 Where:
-- `ts` = startup latency (time to initiate communication)
-- `tw` = time per word (inverse of bandwidth)
-- `m` = message size
-
-For collective operations:
-- **2D Mesh:** `T = 2(√p - 1)ts + (p - 1)tw*m`
-- **3D Mesh:** `T = 3(∛p - 1)ts + (p - 1)tw*m`
-
-## Example Output
-
-```
-╔════════════════════════════════════════════════════════════════════╗
-║                                                                    ║
-║          COLLECTIVE COMMUNICATION ON MESH TOPOLOGIES               ║
-║          Operations: Broadcast (Bcast) and Gather                  ║
-║          Topologies: 2D and 3D Mesh                                ║
-║                                                                    ║
-╚════════════════════════════════════════════════════════════════════╝
-
-Total MPI processes: 16
-
-======================================================================
-2D MESH TOPOLOGY - BROADCAST AND GATHER OPERATIONS
-======================================================================
-
-Mesh Configuration:
-  Total processes: 16
-  Grid size: 4x4
-  Data size: 1000 elements
-
-----------------------------------------------------------------------
-BROADCAST OPERATION
-----------------------------------------------------------------------
-Broadcasting 1000 elements from root (rank 0)...
-✓ Broadcast verification: SUCCESS - All processes received correct data
-
-Broadcast Performance:
-  Execution time: 0.002341 seconds
-  Communication steps: 2
-  Messages sent: 7
-
-  Theoretical Analysis (2D Mesh):
-    Grid dimension: √p = 4
-    Expected steps: 2(√p - 1) = 6
-    Formula: T = 2(√p - 1)ts + (p - 1)tw*m
-
-----------------------------------------------------------------------
-GATHER OPERATION
-----------------------------------------------------------------------
-Gathering data from all 16 processes to root...
-✓ Gather verification: SUCCESS - Received data from all 16 processes
-  Unique process data collected: 16/16
-
-Gather Performance:
-  Execution time: 0.001876 seconds
-  Communication steps: 2
-  Messages received: 7
+  ts = startup latency (time to initiate communication)
+  tw = time per word (inverse of bandwidth)
+  m  = message size
 ```
 
-## Performance Metrics
+### Complexity Analysis
 
-The implementation measures:
-- **Execution time** - Actual wall-clock time
-- **Communication steps** - Number of communication rounds
-- **Messages sent/received** - Total message count
-- **Theoretical vs Actual** - Comparison with theoretical model
+| Topology | Algorithm | Sequential Hops | Messages |
+|----------|-----------|-----------------|----------|
+| 2D Mesh | DOR | 2(√p - 1) | p - 1 |
+| 2D Mesh | Flooding | 2(√p - 1) | rows×(cols-1) + cols×(rows-1) |
+| 3D Mesh | DOR | 3(∛p - 1) | p - 1 |
+| 3D Mesh | Flooding | 3(∛p - 1) | (x-1)yz + x(y-1)z + xy(z-1) |
 
-## Key Results
+---
 
-1. **3D mesh reduces communication distance** compared to 2D mesh
-2. **Diameter comparison:**
-   - 2D: `2√p - 2`
-   - 3D: `3∛p - 3`
-3. **For p=27 processes:**
-   - 2D diameter: 8
-   - 3D diameter: 6
-   - **25% reduction in communication distance**
+## 🧪 Testing
 
-## Technologies Used
+Tested configurations:
+- 4 processes (2×2 grid)
+- 9 processes (3×3 grid)
+- 16 processes (4×4 grid)
+- 27 processes (3×3×3 cube)
+- 64 processes (8×8 grid, 4×4×4 cube)
 
-- **Python 3** - Main programming language
-- **mpi4py** - Python bindings for MPI
-- **NumPy** - Numerical computations
-- **OpenMPI/MPICH** - MPI implementation
+Verification:
+- **Broadcast:** All processes receive identical data ✓
+- **Gather:** Root receives data from all processes ✓
 
-## Testing
+---
 
-The implementation has been tested with:
-- 4 processes (2x2 grid, 2x2x1 3D)
-- 9 processes (3x3 grid)
-- 16 processes (4x4 grid)
-- 27 processes (3x3x3 cube)
-- 64 processes (8x8 grid, 4x4x4 cube)
+## 📚 References
 
-## Verification
+1. MPI Standard: https://www.mpi-forum.org/
+2. mpi4py Documentation: https://mpi4py.readthedocs.io/
+3. Kumar et al., "Introduction to Parallel Computing"
+4. Project Scope Document: `2022101099_project_scope.pdf`
 
-All operations include verification:
-- **Broadcast:** Verifies all processes receive identical data
-- **Gather:** Verifies root receives data from all processes
+---
 
-## Future Enhancements
+## 📄 License
 
-- Visualization of message flow on mesh grids
-- Support for non-square/non-cube mesh dimensions
-- Additional collective operations (Reduce, Allreduce, etc.)
-- Network simulation with configurable latency/bandwidth
+Academic project for Distributed Systems course (Semester 7), IIIT Hyderabad.
 
-## References
+---
 
-- MPI Standard: https://www.mpi-forum.org/
-- mpi4py Documentation: https://mpi4py.readthedocs.io/
-- Project Scope Document: `2022101099_project_scope.pdf`
+## 👥 Authors
 
-## License
+- **Aniket Gupta** - 2022101099
+- **Samarth Srikar** - 2022101106
 
-This is an academic project for Distributed Systems course (Sem-7).
-
-## Author
-
-**Aniket Gupta** - 2022101099  
-**Samarth Srikar** - 2022101106 
-Distributed Systems Project  
-November 2024
+*November 2024*
