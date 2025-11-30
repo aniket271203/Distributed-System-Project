@@ -1,0 +1,145 @@
+{
+  "process_count": 12,
+  "tests": [
+    {
+      "data_size": 100,
+      "2d_broadcast": {
+        "time": 0.02274608612060547,
+        "steps": 5,
+        "messages": 5
+      },
+      "2d_gather": {
+        "time": 0.00040411949157714844,
+        "steps": 5,
+        "messages": 5
+      },
+      "3d_broadcast": {
+        "time": 0.0005605220794677734,
+        "steps": 4,
+        "messages": 4
+      },
+      "3d_gather": {
+        "time": 0.0004837512969970703,
+        "steps": 4,
+        "messages": 4
+      },
+      "2d_broadcast_flooding": {
+        "time": 0.0005567073822021484,
+        "steps": 8,
+        "messages": 2
+      }
+    },
+    {
+      "data_size": 500,
+      "2d_broadcast": {
+        "time": 0.0005888938903808594,
+        "steps": 5,
+        "messages": 5
+      },
+      "2d_gather": {
+        "time": 0.0004863739013671875,
+        "steps": 5,
+        "messages": 5
+      },
+      "3d_broadcast": {
+        "time": 0.0005846023559570312,
+        "steps": 4,
+        "messages": 4
+      },
+      "3d_gather": {
+        "time": 0.0005645751953125,
+        "steps": 4,
+        "messages": 4
+      },
+      "2d_broadcast_flooding": {
+        "time": 0.0004887580871582031,
+        "steps": 8,
+        "messages": 2
+      }
+    },
+    {
+      "data_size": 1000,
+      "2d_broadcast": {
+        "time": 0.00042748451232910156,
+        "steps": 5,
+        "messages": 5
+      },
+      "2d_gather": {
+        "time": 0.0006835460662841797,
+        "steps": 5,
+        "messages": 5
+      },
+      "3d_broadcast": {
+        "time": 0.00041484832763671875,
+        "steps": 4,
+        "messages": 4
+      },
+      "3d_gather": {
+        "time": 0.00048232078552246094,
+        "steps": 4,
+        "messages": 4
+      },
+      "2d_broadcast_flooding": {
+        "time": 0.0004494190216064453,
+        "steps": 8,
+        "messages": 2
+      }
+    },
+    {
+      "data_size": 5000,
+      "2d_broadcast": {
+        "time": 0.0003819465637207031,
+        "steps": 5,
+        "messages": 5
+      },
+      "2d_gather": {
+        "time": 0.0009236335754394531,
+        "steps": 5,
+        "messages": 5
+      },
+      "3d_broadcast": {
+        "time": 0.0004420280456542969,
+        "steps": 4,
+        "messages": 4
+      },
+      "3d_gather": {
+        "time": 0.0011286735534667969,
+        "steps": 4,
+        "messages": 4
+      },
+      "2d_broadcast_flooding": {
+        "time": 0.0006313323974609375,
+        "steps": 8,
+        "messages": 2
+      }
+    },
+    {
+      "data_size": 10000,
+      "2d_broadcast": {
+        "time": 0.0006501674652099609,
+        "steps": 5,
+        "messages": 5
+      },
+      "2d_gather": {
+        "time": 0.0019876956939697266,
+        "steps": 5,
+        "messages": 5
+      },
+      "3d_broadcast": {
+        "time": 0.0008699893951416016,
+        "steps": 4,
+        "messages": 4
+      },
+      "3d_gather": {
+        "time": 0.002263307571411133,
+        "steps": 4,
+        "messages": 4
+      },
+      "2d_broadcast_flooding": {
+        "time": 0.001007080078125,
+        "steps": 8,
+        "messages": 2
+      }
+    }
+  ]
+}

@@ -3,6 +3,7 @@ Collect real performance data from MPI runs
 Author: Aniket Gupta
 """
 
+import argparse
 from mpi4py import MPI
 import numpy as np
 import json
@@ -11,7 +12,7 @@ from mesh_topology import Mesh2D, Mesh3D
 from broadcast import broadcast_2d_mesh, broadcast_3d_mesh, broadcast_2d_mesh_pipelined, broadcast_2d_mesh_binary_tree, broadcast_2d_mesh_flooding
 from gather import gather_2d_mesh, gather_3d_mesh
 
-def collect_performance_data():
+def collect_performance_data(dims_2d=None, dims_3d=None):
     """Collect performance data for various configurations"""
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -27,6 +28,10 @@ def collect_performance_data():
     
     if rank == 0:
         print(f"\nCollecting performance data with {size} processes...")
+        if dims_2d:
+            print(f"Forced 2D dims: {dims_2d}")
+        if dims_3d:
+            print(f"Forced 3D dims: {dims_3d}")
         print(f"Testing data sizes: {data_sizes}")
     
     for data_size in data_sizes:
@@ -39,7 +44,7 @@ def collect_performance_data():
         }
         
         # 2D Mesh Tests
-        mesh_2d = Mesh2D(comm)
+        mesh_2d = Mesh2D(comm, dims=dims_2d)
         
         # 2D Broadcast
         if rank == 0:
@@ -78,32 +83,36 @@ def collect_performance_data():
             }
         
         # 3D Mesh Tests (if enough processes)
-        if size >= 4: # Minimum 4 nodes for a reasonable 3D mesh (e.g. 1x2x2)
-            mesh_3d = Mesh3D(comm)
-            
-            # 3D Broadcast
-            if rank == 0:
+        if size >= 2: # Minimum 2 nodes for any comparison
+            try:
+                mesh_3d = Mesh3D(comm, dims=dims_3d)
+                
+                # 3D Broadcast
+                if rank == 0:
+                    data = np.random.rand(data_size)
+                else:
+                    data = None
+                
+                _, time_3d_bcast, steps_3d_bcast, msgs_3d_bcast = broadcast_3d_mesh(mesh_3d, data, root=0)
+                
+                # 3D Gather
                 data = np.random.rand(data_size)
-            else:
-                data = None
-            
-            _, time_3d_bcast, steps_3d_bcast, msgs_3d_bcast = broadcast_3d_mesh(mesh_3d, data, root=0)
-            
-            # 3D Gather
-            data = np.random.rand(data_size)
-            _, time_3d_gather, steps_3d_gather, msgs_3d_gather = gather_3d_mesh(mesh_3d, data, root=0)
-            
-            if rank == 0:
-                test_result['3d_broadcast'] = {
-                    'time': time_3d_bcast,
-                    'steps': steps_3d_bcast,
-                    'messages': msgs_3d_bcast
-                }
-                test_result['3d_gather'] = {
-                    'time': time_3d_gather,
-                    'steps': steps_3d_gather,
-                    'messages': msgs_3d_gather
-                }
+                _, time_3d_gather, steps_3d_gather, msgs_3d_gather = gather_3d_mesh(mesh_3d, data, root=0)
+                
+                if rank == 0:
+                    test_result['3d_broadcast'] = {
+                        'time': time_3d_bcast,
+                        'steps': steps_3d_bcast,
+                        'messages': msgs_3d_bcast
+                    }
+                    test_result['3d_gather'] = {
+                        'time': time_3d_gather,
+                        'steps': steps_3d_gather,
+                        'messages': msgs_3d_gather
+                    }
+            except Exception as e:
+                if rank == 0:
+                    print(f"Skipping 3D tests: {e}")
         
         if rank == 0:
             results['tests'].append(test_result)
@@ -150,4 +159,12 @@ def collect_performance_data():
         print("="*70 + "\n")
 
 if __name__ == "__main__":
-    collect_performance_data()
+    parser = argparse.ArgumentParser(description='Collect performance data')
+    parser.add_argument('--dims_2d', type=str, help='Dimensions for 2D mesh (e.g., "4,2")')
+    parser.add_argument('--dims_3d', type=str, help='Dimensions for 3D mesh (e.g., "2,2,2")')
+    args = parser.parse_args()
+    
+    dims_2d = tuple(map(int, args.dims_2d.split(','))) if args.dims_2d else None
+    dims_3d = tuple(map(int, args.dims_3d.split(','))) if args.dims_3d else None
+    
+    collect_performance_data(dims_2d, dims_3d)

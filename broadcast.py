@@ -37,7 +37,7 @@ def broadcast_2d_mesh(mesh, data, root=0):
     
     if mesh.coords[0] == root_row:  # Process is in root's row
         data = row_comm.bcast(data, root=root_col)
-        communication_steps += 1
+        communication_steps += mesh.cols - 1
         if rank == root:
             messages_sent += mesh.cols - 1
     
@@ -49,9 +49,9 @@ def broadcast_2d_mesh(mesh, data, root=0):
     
     # All processes in a column participate; the one in root_row has the data
     data = col_comm.bcast(data, root=root_row)
-    communication_steps += 1
-    if mesh.coords[0] == root_row and mesh.coords[1] != root_col:
-        # Column leaders (except root) broadcast down
+    communication_steps += mesh.rows - 1
+    if mesh.coords[0] == root_row:
+        # Column leaders (including root) broadcast down
         messages_sent += mesh.rows - 1
     
     col_comm.Free()
@@ -98,7 +98,7 @@ def broadcast_3d_mesh(mesh, data, root=0):
     
     # Broadcast along each x-line (those with matching y,z)
     data = x_comm.bcast(data if (mesh.coords[1] == root_y and mesh.coords[2] == root_z) else None, root=root_x)
-    communication_steps += 1
+    communication_steps += mesh.x_dim - 1
     if mesh.coords[0] == root_x and mesh.coords[1] == root_y and mesh.coords[2] == root_z:
         messages_sent += mesh.x_dim - 1
     
@@ -110,7 +110,7 @@ def broadcast_3d_mesh(mesh, data, root=0):
     
     # Broadcast along each y-line (those with matching x,z)
     data = y_comm.bcast(data if mesh.coords[2] == root_z else None, root=root_y)
-    communication_steps += 1
+    communication_steps += mesh.y_dim - 1
     if mesh.coords[1] == root_y and mesh.coords[2] == root_z and mesh.coords[0] < mesh.x_dim:
         messages_sent += mesh.y_dim - 1
     
@@ -122,7 +122,7 @@ def broadcast_3d_mesh(mesh, data, root=0):
     
     # Broadcast along each z-line (those with matching x,y)
     data = z_comm.bcast(data, root=root_z)
-    communication_steps += 1
+    communication_steps += mesh.z_dim - 1
     if mesh.coords[2] == root_z and mesh.coords[0] < mesh.x_dim and mesh.coords[1] < mesh.y_dim:
         messages_sent += mesh.z_dim - 1
     
@@ -449,10 +449,12 @@ def broadcast_2d_mesh_flooding(mesh, data, root=0):
 
 
 def measure_broadcast_performance(mesh_type='2D', data_size=1000, root=0, algorithm='standard'):
-    """
-    Measure broadcast performance with latency-bandwidth model
-    T = ts + tw * m
-    where ts = latency, tw = time per word, m = message size
+    """Measure broadcast performance and return structured metrics.
+
+    Efficiency metrics collected:
+        - Time (average/max across processes)
+        - Messages (sum of per-process send counts)
+        - Rounds (max communication steps across processes)
     """
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()

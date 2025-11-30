@@ -43,8 +43,32 @@
                 </div>
 
                 <div class="control-group">
-                    <label for="grid-size">Grid Size (<span id="size-label">4x4</span>)</label>
-                    <input type="range" id="grid-size" min="2" max="8" value="4">
+                    <label>Dimensions</label>
+                    <div class="dims-inputs" style="display: flex; gap: 10px;">
+                        <div class="input-wrapper">
+                            <label for="dim-x" style="font-size: 0.8em;">X / Rows</label>
+                            <input type="number" id="dim-x" min="1" max="8" value="4" style="width: 50px; padding: 4px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                        </div>
+                        <div class="input-wrapper">
+                            <label for="dim-y" style="font-size: 0.8em;">Y / Cols</label>
+                            <input type="number" id="dim-y" min="1" max="8" value="4" style="width: 50px; padding: 4px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                        </div>
+                        <div class="input-wrapper" id="dim-z-wrapper" style="display: none;">
+                            <label for="dim-z" style="font-size: 0.8em;">Z</label>
+                            <input type="number" id="dim-z" min="1" max="8" value="2" style="width: 50px; padding: 4px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                        </div>
+                    </div>
+                    <div style="margin-top: 5px; font-size: 0.9em; color: #94a3b8;">
+                        Total Nodes: <span id="total-nodes">16</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="data-size">Data Size (integers)</label>
+                    <input type="number" id="data-size" min="1" value="1000" style="width: 100%; padding: 8px; border-radius: 6px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color);">
+                    <div style="margin-top: 5px; font-size: 0.8em; color: #94a3b8;">
+                        Model: T = Steps × (2.5µs + Size × 4B / 1GB/s)
+                    </div>
                 </div>
 
                 <div class="control-group">
@@ -68,6 +92,10 @@
                         <div class="status-item">
                             <span class="label">Messages:</span>
                             <span class="value" id="msg-count">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Est. Time:</span>
+                            <span class="value" id="est-time">0 µs</span>
                         </div>
                         <div class="status-item">
                             <span class="label">Verification:</span>

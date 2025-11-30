@@ -104,6 +104,19 @@ mpiexec -n 27 python main.py      # 3x3x3 cube
 mpiexec -n 16 python performance_analysis.py
 ```
 
+**Run Simulation (structured efficiency metrics):**
+```bash
+# Broadcast & Gather on 2D and 3D for message sizes 256 and 1024
+mpiexec -n 16 python simulate_mesh.py --topology both --collectives broadcast,gather --data-sizes 256,1024 --algorithms standard,pipelined
+
+# 3D only (requires process count that factors into a 3D mesh)
+mpiexec -n 8 python simulate_mesh.py --topology 3d --collectives broadcast --algorithms standard --data-sizes 2048
+```
+Outputs are saved to `results/simulation_p<process_count>.json` containing:
+- `avg_time_sec`, `max_time_sec`
+- `rounds_measured` (communication rounds) vs `rounds_theoretical`
+- `messages_counted` (sum of sends/receives) vs minimal spanning tree bound `messages_minimal`
+
 **Run Benchmarks on Cluster (SLURM):**
 ```bash
 sbatch benchmark.slurm

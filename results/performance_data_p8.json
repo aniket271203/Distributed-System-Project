@@ -4,27 +4,27 @@
     {
       "data_size": 100,
       "2d_broadcast": {
-        "time": 0.004469871520996094,
-        "steps": 2,
-        "messages": 3
+        "time": 0.0013110637664794922,
+        "steps": 4,
+        "messages": 4
       },
       "2d_gather": {
-        "time": 0.00020742416381835938,
-        "steps": 2,
+        "time": 0.00034308433532714844,
+        "steps": 4,
         "messages": 4
       },
       "3d_broadcast": {
-        "time": 0.00023555755615234375,
+        "time": 0.0005156993865966797,
         "steps": 3,
         "messages": 3
       },
       "3d_gather": {
-        "time": 0.0002543926239013672,
+        "time": 0.00033926963806152344,
         "steps": 3,
         "messages": 3
       },
       "2d_broadcast_flooding": {
-        "time": 0.00028228759765625,
+        "time": 0.0005481243133544922,
         "steps": 7,
         "messages": 2
       }
@@ -32,27 +32,27 @@
     {
       "data_size": 500,
       "2d_broadcast": {
-        "time": 0.00020575523376464844,
-        "steps": 2,
-        "messages": 3
+        "time": 0.0006878376007080078,
+        "steps": 4,
+        "messages": 4
       },
       "2d_gather": {
-        "time": 0.00020885467529296875,
-        "steps": 2,
+        "time": 0.00032019615173339844,
+        "steps": 4,
         "messages": 4
       },
       "3d_broadcast": {
-        "time": 0.0002415180206298828,
+        "time": 0.0003120899200439453,
         "steps": 3,
         "messages": 3
       },
       "3d_gather": {
-        "time": 0.0002970695495605469,
+        "time": 0.0003426074981689453,
         "steps": 3,
         "messages": 3
       },
       "2d_broadcast_flooding": {
-        "time": 0.00025653839111328125,
+        "time": 0.00033974647521972656,
         "steps": 7,
         "messages": 2
       }
@@ -60,27 +60,27 @@
     {
       "data_size": 1000,
       "2d_broadcast": {
-        "time": 0.00016307830810546875,
-        "steps": 2,
-        "messages": 3
+        "time": 0.00039696693420410156,
+        "steps": 4,
+        "messages": 4
       },
       "2d_gather": {
-        "time": 0.00020694732666015625,
-        "steps": 2,
+        "time": 0.0004000663757324219,
+        "steps": 4,
         "messages": 4
       },
       "3d_broadcast": {
-        "time": 0.0002391338348388672,
+        "time": 0.0004329681396484375,
         "steps": 3,
         "messages": 3
       },
       "3d_gather": {
-        "time": 0.0003039836883544922,
+        "time": 0.004958152770996094,
         "steps": 3,
         "messages": 3
       },
       "2d_broadcast_flooding": {
-        "time": 0.00023674964904785156,
+        "time": 0.0004448890686035156,
         "steps": 7,
         "messages": 2
       }
@@ -88,27 +88,27 @@
     {
       "data_size": 5000,
       "2d_broadcast": {
-        "time": 0.0002963542938232422,
-        "steps": 2,
-        "messages": 3
+        "time": 0.0017828941345214844,
+        "steps": 4,
+        "messages": 4
       },
       "2d_gather": {
-        "time": 0.0005342960357666016,
-        "steps": 2,
+        "time": 0.0008957386016845703,
+        "steps": 4,
         "messages": 4
       },
       "3d_broadcast": {
-        "time": 0.00025653839111328125,
+        "time": 0.006308555603027344,
         "steps": 3,
         "messages": 3
       },
       "3d_gather": {
-        "time": 0.0006988048553466797,
+        "time": 0.006656646728515625,
         "steps": 3,
         "messages": 3
       },
       "2d_broadcast_flooding": {
-        "time": 0.00038886070251464844,
+        "time": 0.0010786056518554688,
         "steps": 7,
         "messages": 2
       }
@@ -116,27 +116,27 @@
     {
       "data_size": 10000,
       "2d_broadcast": {
-        "time": 0.00029921531677246094,
-        "steps": 2,
-        "messages": 3
+        "time": 0.0010645389556884766,
+        "steps": 4,
+        "messages": 4
       },
       "2d_gather": {
-        "time": 0.0009903907775878906,
-        "steps": 2,
+        "time": 0.0012891292572021484,
+        "steps": 4,
         "messages": 4
       },
       "3d_broadcast": {
-        "time": 0.00034928321838378906,
+        "time": 0.0007035732269287109,
         "steps": 3,
         "messages": 3
       },
       "3d_gather": {
-        "time": 0.0013201236724853516,
+        "time": 0.0016679763793945312,
         "steps": 3,
         "messages": 3
       },
       "2d_broadcast_flooding": {
-        "time": 0.0006256103515625,
+        "time": 0.0008246898651123047,
         "steps": 7,
         "messages": 2
       }

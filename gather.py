@@ -32,7 +32,7 @@ def gather_2d_mesh(mesh, data, root=0):
     # Step 1: Gather data along each row to row leaders (column 0)
     row_comm = comm.Split(color=mesh.coords[0], key=mesh.coords[1])
     row_data = row_comm.gather(data, root=0)
-    communication_steps += 1
+    communication_steps += mesh.cols - 1
     if mesh.coords[1] == 0:  # Row leader
         messages_received += mesh.cols - 1
     row_comm.Free()
@@ -41,7 +41,7 @@ def gather_2d_mesh(mesh, data, root=0):
     col_comm = comm.Split(color=mesh.coords[1], key=mesh.coords[0])
     if mesh.coords[1] == 0:  # Only row leaders gather
         gathered_data = col_comm.gather(row_data, root=root_row)
-        communication_steps += 1
+        communication_steps += mesh.rows - 1
         if mesh.coords[0] == root_row:  # Root process
             messages_received += mesh.rows - 1
     else:
@@ -98,7 +98,7 @@ def gather_3d_mesh(mesh, data, root=0):
     # Step 1: Gather along x-axis to x=0
     x_comm = comm.Split(color=mesh.coords[1] * mesh.z_dim + mesh.coords[2], key=mesh.coords[0])
     x_data = x_comm.gather(data, root=0)
-    communication_steps += 1
+    communication_steps += mesh.x_dim - 1
     if mesh.coords[0] == 0:
         messages_received += mesh.x_dim - 1
     x_comm.Free()
@@ -107,7 +107,7 @@ def gather_3d_mesh(mesh, data, root=0):
     y_comm = comm.Split(color=mesh.coords[0] * mesh.z_dim + mesh.coords[2], key=mesh.coords[1])
     if mesh.coords[0] == 0:
         y_data = y_comm.gather(x_data, root=0)
-        communication_steps += 1
+        communication_steps += mesh.y_dim - 1
         if mesh.coords[1] == 0:
             messages_received += mesh.y_dim - 1
     else:
@@ -118,7 +118,7 @@ def gather_3d_mesh(mesh, data, root=0):
     z_comm = comm.Split(color=mesh.coords[0] * mesh.y_dim + mesh.coords[1], key=mesh.coords[2])
     if mesh.coords[0] == 0 and mesh.coords[1] == 0:
         gathered_data = z_comm.gather(y_data, root=root_z)
-        communication_steps += 1
+        communication_steps += mesh.z_dim - 1
         if mesh.coords[2] == root_z:
             messages_received += mesh.z_dim - 1
     else:
@@ -151,64 +151,62 @@ def gather_3d_mesh(mesh, data, root=0):
 
 
 def measure_gather_performance(mesh_type='2D', data_size=1000, root=0):
-    """
-    Measure gather performance with latency-bandwidth model
-    T = ts + tw * m
-    where ts = latency, tw = time per word, m = message size
-    """
+    """Measure gather performance and return structured metrics (time, messages, rounds)."""
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
-    
+
     # Create mesh topology
     if mesh_type == '2D':
         mesh = Mesh2D(comm)
     else:
         mesh = Mesh3D(comm)
-    
-    # Create data to gather (each process has its own data)
-    data = np.random.rand(data_size) * rank  # Multiply by rank to differentiate
-    
+
+    # Per-process data (scaled by rank to differentiate)
+    data = np.random.rand(data_size) * rank
+
     # Perform gather
     if mesh_type == '2D':
         gathered_data, elapsed_time, comm_steps, msgs_recv = gather_2d_mesh(mesh, data, root)
     else:
         gathered_data, elapsed_time, comm_steps, msgs_recv = gather_3d_mesh(mesh, data, root)
-    
-    # Gather statistics at root
+
+    # Collect stats
     all_times = comm.gather(elapsed_time, root=root)
     all_steps = comm.gather(comm_steps, root=root)
-    
+    all_msgs = comm.gather(msgs_recv, root=root)
+
     if rank == root:
-        avg_time = np.mean(all_times)
-        max_time = np.max(all_times)
-        total_steps = max(all_steps)
-        
-        print(f"\n{'='*60}")
-        print(f"Gather Performance on {mesh_type} Mesh")
-        print(f"{'='*60}")
-        print(f"Number of processes: {comm.Get_size()}")
-        print(f"Data size per process: {data_size} elements")
-        if gathered_data is not None:
-            print(f"Total data gathered: {len(gathered_data)} elements")
-        print(f"Average time: {avg_time:.6f} seconds")
-        print(f"Maximum time: {max_time:.6f} seconds")
-        print(f"Communication steps: {total_steps}")
-        print(f"Messages received at root: {msgs_recv}")
-        
-        # Theoretical analysis
+        avg_time = float(np.mean(all_times))
+        max_time = float(np.max(all_times))
+        total_rounds = int(max(all_steps))
+        total_messages = int(np.sum(all_msgs))
+
         p = comm.Get_size()
         if mesh_type == '2D':
-            grid_size = int(np.sqrt(p))
-            theoretical_steps = 2 * (grid_size - 1)
-            print(f"Theoretical steps (2D): 2(√p - 1) = {theoretical_steps}")
+            grid_dim = int(np.sqrt(p))
+            theoretical_rounds = 2 * (grid_dim - 1)
         else:
-            grid_size = int(round(p ** (1/3)))
-            theoretical_steps = 3 * (grid_size - 1)
-            print(f"Theoretical steps (3D): 3(∛p - 1) = {theoretical_steps}")
-        
-        print(f"{'='*60}\n")
-    
-    return gathered_data
+            grid_dim = int(round(p ** (1/3)))
+            theoretical_rounds = 3 * (grid_dim - 1)
+        minimal_messages = p - 1
+
+        metrics = {
+            'collective': 'gather',
+            'mesh_type': mesh_type,
+            'processes': p,
+            'data_size_per_process': data_size,
+            'avg_time_sec': avg_time,
+            'max_time_sec': max_time,
+            'rounds_measured': total_rounds,
+            'rounds_theoretical': theoretical_rounds,
+            'messages_counted': total_messages,
+            'messages_minimal': minimal_messages,
+            'total_data_elements': len(gathered_data) if gathered_data is not None else None
+        }
+    else:
+        metrics = None
+
+    return metrics
 
 
 if __name__ == "__main__":
@@ -221,16 +219,13 @@ if __name__ == "__main__":
         print("GATHER OPERATIONS ON MESH TOPOLOGIES")
         print("="*60)
     
-    # Test 2D Mesh Gather
-    if rank == 0:
-        print("\nTesting 2D Mesh Gather...")
-    measure_gather_performance(mesh_type='2D', data_size=100, root=0)
-    
-    # Test 3D Mesh Gather if we have enough processes
+    tests = [('2D', 100)]
     if size >= 8:
+        tests.append(('3D', 100))
+    for mesh_type, dsize in tests:
         if rank == 0:
-            print("\nTesting 3D Mesh Gather...")
-        measure_gather_performance(mesh_type='3D', data_size=100, root=0)
+            print(f"\nTesting {mesh_type} Mesh Gather (data_size={dsize})...")
+        measure_gather_performance(mesh_type=mesh_type, data_size=dsize, root=0)
     
     if rank == 0:
         print("\nGather tests completed successfully!")

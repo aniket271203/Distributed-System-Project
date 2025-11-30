@@ -8,6 +8,7 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import math
 
 def load_data(results_dir="results"):
     """Load all performance data JSON files."""
@@ -22,13 +23,30 @@ def load_data(results_dir="results"):
     return data
 
 def plot_time_vs_datasize(data):
-    """Plot execution time vs data size for each process count."""
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    axes = axes.flatten()
+    """Plot execution time vs data size for selected process counts."""
+    # Select specific process counts to plot detailed views for
+    # Only those that support proper 3D meshes (all dims >= 2)
+    selected_counts = [8, 12, 16]
+    available_counts = sorted([p for p in data.keys() if p in selected_counts])
     
-    process_counts = sorted(data.keys())
+    if not available_counts:
+        print("No matching process counts (8, 12, 16) found to plot detailed views.")
+        return
+
+    # Create subplots based on number of available counts
+    n_plots = len(available_counts)
+    cols = min(n_plots, 3)
+    rows = math.ceil(n_plots / cols)
     
-    for idx, p in enumerate(process_counts):
+    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 5 * rows))
+    
+    # Ensure axes is always iterable
+    if n_plots == 1:
+        axes = [axes]
+    else:
+        axes = axes.flatten()
+    
+    for idx, p in enumerate(available_counts):
         ax = axes[idx]
         tests = data[p]
         
@@ -51,6 +69,10 @@ def plot_time_vs_datasize(data):
         ax.legend(loc='upper left', fontsize=9)
         ax.grid(True, alpha=0.3)
         ax.set_xscale('log')
+    
+    # Hide empty subplots if any
+    for i in range(n_plots, rows * cols):
+        axes[i].axis('off')
     
     plt.tight_layout()
     plt.savefig('results/time_vs_datasize.png', dpi=150, bbox_inches='tight')

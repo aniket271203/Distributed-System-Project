@@ -34,10 +34,16 @@ class MeshTopology:
 class Mesh2D(MeshTopology):
     """2D Mesh Topology Implementation"""
     
-    def __init__(self, comm):
+    def __init__(self, comm, dims=None):
         super().__init__(comm)
-        # Calculate grid dimensions - find best factors for R * C = size
-        self.rows, self.cols = self._find_best_2d_dims(self.size)
+        
+        if dims:
+            self.rows, self.cols = dims
+            if self.rows * self.cols != self.size:
+                raise ValueError(f"Invalid dimensions {dims} for size {self.size}")
+        else:
+            # Calculate grid dimensions - find best factors for R * C = size
+            self.rows, self.cols = self._find_best_2d_dims(self.size)
         
         if self.rank == 0:
             print(f"2D Mesh: {self.rows}x{self.cols} = {self.rows*self.cols} nodes")
@@ -139,10 +145,16 @@ class Mesh2D(MeshTopology):
 class Mesh3D(MeshTopology):
     """3D Mesh Topology Implementation"""
     
-    def __init__(self, comm):
+    def __init__(self, comm, dims=None):
         super().__init__(comm)
-        # Calculate grid dimensions - find best factors for X * Y * Z = size
-        self.x_dim, self.y_dim, self.z_dim = self._find_best_3d_dims(self.size)
+        
+        if dims:
+            self.x_dim, self.y_dim, self.z_dim = dims
+            if self.x_dim * self.y_dim * self.z_dim != self.size:
+                raise ValueError(f"Invalid dimensions {dims} for size {self.size}")
+        else:
+            # Calculate grid dimensions - find best factors for X * Y * Z = size
+            self.x_dim, self.y_dim, self.z_dim = self._find_best_3d_dims(self.size)
         
         if self.rank == 0:
             print(f"3D Mesh: {self.x_dim}x{self.y_dim}x{self.z_dim} = {self.x_dim*self.y_dim*self.z_dim} nodes")
