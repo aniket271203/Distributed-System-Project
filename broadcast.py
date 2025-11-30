@@ -23,7 +23,6 @@ def broadcast_2d_mesh(mesh, data, root=0):
     rank = mesh.get_rank()
     
     start_time = time.time()
-    communication_steps = 0
     messages_sent = 0
     
     # Step 1: Broadcast along root's row
@@ -37,7 +36,6 @@ def broadcast_2d_mesh(mesh, data, root=0):
     
     if mesh.coords[0] == root_row:  # Process is in root's row
         data = row_comm.bcast(data, root=root_col)
-        communication_steps += 1
         if rank == root:
             messages_sent += mesh.cols - 1
     
@@ -49,12 +47,15 @@ def broadcast_2d_mesh(mesh, data, root=0):
     
     # All processes in a column participate; the one in root_row has the data
     data = col_comm.bcast(data, root=root_row)
-    communication_steps += 1
     if mesh.coords[0] == root_row and mesh.coords[1] != root_col:
         # Column leaders (except root) broadcast down
         messages_sent += mesh.rows - 1
     
     col_comm.Free()
+    
+    # Sequential hops = hops along row + hops along column
+    # For 2D mesh: (cols-1) + (rows-1) sequential hops
+    communication_steps = (mesh.cols - 1) + (mesh.rows - 1)
     
     # Synchronize to ensure all processes have received data
     comm.Barrier()
@@ -86,7 +87,6 @@ def broadcast_3d_mesh(mesh, data, root=0):
         return data, 0, 0, 0
     
     start_time = time.time()
-    communication_steps = 0
     messages_sent = 0
     
     root_coords = mesh._rank_to_coords(root)
@@ -98,7 +98,6 @@ def broadcast_3d_mesh(mesh, data, root=0):
     
     # Broadcast along each x-line (those with matching y,z)
     data = x_comm.bcast(data if (mesh.coords[1] == root_y and mesh.coords[2] == root_z) else None, root=root_x)
-    communication_steps += 1
     if mesh.coords[0] == root_x and mesh.coords[1] == root_y and mesh.coords[2] == root_z:
         messages_sent += mesh.x_dim - 1
     
@@ -110,7 +109,6 @@ def broadcast_3d_mesh(mesh, data, root=0):
     
     # Broadcast along each y-line (those with matching x,z)
     data = y_comm.bcast(data if mesh.coords[2] == root_z else None, root=root_y)
-    communication_steps += 1
     if mesh.coords[1] == root_y and mesh.coords[2] == root_z and mesh.coords[0] < mesh.x_dim:
         messages_sent += mesh.y_dim - 1
     
@@ -122,11 +120,14 @@ def broadcast_3d_mesh(mesh, data, root=0):
     
     # Broadcast along each z-line (those with matching x,y)
     data = z_comm.bcast(data, root=root_z)
-    communication_steps += 1
     if mesh.coords[2] == root_z and mesh.coords[0] < mesh.x_dim and mesh.coords[1] < mesh.y_dim:
         messages_sent += mesh.z_dim - 1
     
     z_comm.Free()
+    
+    # Sequential hops = hops along x + hops along y + hops along z
+    # For 3D mesh: (x_dim-1) + (y_dim-1) + (z_dim-1) sequential hops
+    communication_steps = (mesh.x_dim - 1) + (mesh.y_dim - 1) + (mesh.z_dim - 1)
     
     # Synchronize to ensure all processes have received data
     comm.Barrier()

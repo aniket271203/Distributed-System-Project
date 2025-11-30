@@ -22,7 +22,6 @@ def gather_2d_mesh(mesh, data, root=0):
     rank = mesh.get_rank()
     
     start_time = time.time()
-    communication_steps = 0
     messages_received = 0
     
     root_coords = mesh._rank_to_coords(root)
@@ -32,7 +31,6 @@ def gather_2d_mesh(mesh, data, root=0):
     # Step 1: Gather data along each row to row leaders (column 0)
     row_comm = comm.Split(color=mesh.coords[0], key=mesh.coords[1])
     row_data = row_comm.gather(data, root=0)
-    communication_steps += 1
     if mesh.coords[1] == 0:  # Row leader
         messages_received += mesh.cols - 1
     row_comm.Free()
@@ -41,12 +39,15 @@ def gather_2d_mesh(mesh, data, root=0):
     col_comm = comm.Split(color=mesh.coords[1], key=mesh.coords[0])
     if mesh.coords[1] == 0:  # Only row leaders gather
         gathered_data = col_comm.gather(row_data, root=root_row)
-        communication_steps += 1
         if mesh.coords[0] == root_row:  # Root process
             messages_received += mesh.rows - 1
     else:
         gathered_data = None
     col_comm.Free()
+    
+    # Sequential hops = hops along columns + hops along row
+    # For 2D mesh: (rows-1) + (cols-1) sequential hops
+    communication_steps = (mesh.rows - 1) + (mesh.cols - 1)
     
     # Synchronize
     comm.Barrier()
@@ -89,7 +90,6 @@ def gather_3d_mesh(mesh, data, root=0):
         return gathered if rank == root else None, 0, 0, 0
     
     start_time = time.time()
-    communication_steps = 0
     messages_received = 0
     
     root_coords = mesh._rank_to_coords(root)
@@ -98,7 +98,6 @@ def gather_3d_mesh(mesh, data, root=0):
     # Step 1: Gather along x-axis to x=0
     x_comm = comm.Split(color=mesh.coords[1] * mesh.z_dim + mesh.coords[2], key=mesh.coords[0])
     x_data = x_comm.gather(data, root=0)
-    communication_steps += 1
     if mesh.coords[0] == 0:
         messages_received += mesh.x_dim - 1
     x_comm.Free()
@@ -107,7 +106,6 @@ def gather_3d_mesh(mesh, data, root=0):
     y_comm = comm.Split(color=mesh.coords[0] * mesh.z_dim + mesh.coords[2], key=mesh.coords[1])
     if mesh.coords[0] == 0:
         y_data = y_comm.gather(x_data, root=0)
-        communication_steps += 1
         if mesh.coords[1] == 0:
             messages_received += mesh.y_dim - 1
     else:
@@ -118,12 +116,15 @@ def gather_3d_mesh(mesh, data, root=0):
     z_comm = comm.Split(color=mesh.coords[0] * mesh.y_dim + mesh.coords[1], key=mesh.coords[2])
     if mesh.coords[0] == 0 and mesh.coords[1] == 0:
         gathered_data = z_comm.gather(y_data, root=root_z)
-        communication_steps += 1
         if mesh.coords[2] == root_z:
             messages_received += mesh.z_dim - 1
     else:
         gathered_data = None
     z_comm.Free()
+    
+    # Sequential hops = hops along x + hops along y + hops along z
+    # For 3D mesh: (x_dim-1) + (y_dim-1) + (z_dim-1) sequential hops
+    communication_steps = (mesh.x_dim - 1) + (mesh.y_dim - 1) + (mesh.z_dim - 1)
     
     # Synchronize
     comm.Barrier()
