@@ -43,6 +43,18 @@ class MeshVisualizer {
     }
 
     setupInteractions() {
+        // Click-to-select source node in 2D
+        this.canvas.addEventListener('click', (e) => {
+            if (this.is3D) return; // 3D selection via inputs only
+            const rect = this.canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hit = this.pick2DNode(mx, my);
+            if (!hit) return;
+            const { r, c } = hit;
+            this.setRootByCoords(r, c, 0);
+        });
+
         this.canvas.addEventListener('mousedown', (e) => {
             if (!this.is3D) return;
             this.isDragging = true;
@@ -121,6 +133,22 @@ class MeshVisualizer {
 
         document.getElementById('verification-status').textContent = "Pending";
         document.getElementById('verification-status').style.color = "#64748b";
+
+        const rootCoords = this.getCoords(this.root);
+        const rootRank = this.root;
+        const [sx, sy, sz] = this.is3D ? rootCoords : [rootCoords[0], rootCoords[1], 0];
+        const sxInput = document.getElementById('source-x');
+        const syInput = document.getElementById('source-y');
+        const szInput = document.getElementById('source-z');
+        if (sxInput && syInput) {
+            sxInput.value = sx;
+            syInput.value = sy;
+        }
+        if (szInput && this.is3D) szInput.value = sz;
+        const legendRoot = document.getElementById('legend-root');
+        const currentRoot = document.getElementById('current-root');
+        if (legendRoot) legendRoot.textContent = String(rootRank);
+        if (currentRoot) currentRoot.textContent = String(rootRank);
 
         this.updateStatus();
         this.draw();
@@ -311,28 +339,57 @@ class MeshVisualizer {
         }
     }
 
-    getCoords(rank) {
-        if (this.is3D) {
-            const Y = this.dims[1];
-            const Z = this.dims[2];
-            const stride_x = Y * Z;
-
-            const x = Math.floor(rank / stride_x);
-            const rem = rank % stride_x;
-            const y = Math.floor(rem / Z);
-            const z = rem % Z;
-            return [x, y, z];
-        } else {
-            const cols = this.dims[1];
-            const r = Math.floor(rank / cols);
-            const c = rank % cols;
-            return [r, c];
-        }
-    }
+    
 
     getRank(x, y, z) {
         if (this.is3D) return x * this.dims[1] * this.dims[2] + y * this.dims[2] + z;
         return x * this.dims[1] + y;
+    }
+
+    setRootByCoords(x, y, z) {
+        // Clamp inputs to valid ranges
+        const maxX = this.dims[0] - 1;
+        const maxY = this.dims[1] - 1;
+        const maxZ = (this.is3D ? this.dims[2] - 1 : 0);
+        const cx = Math.max(0, Math.min(maxX, x));
+        const cy = Math.max(0, Math.min(maxY, y));
+        const cz = Math.max(0, Math.min(maxZ, z));
+        this.root = this.getRank(cx, cy, cz);
+        this.reset();
+    }
+
+    pick2DNode(mx, my) {
+        // Recompute grid geometry like draw2D
+        const padding = 50;
+        const availWidth = this.width - padding * 2;
+        const availHeight = this.height - padding * 2;
+        const rows = this.dims[0];
+        const cols = this.dims[1];
+        const sizeX = availWidth / (cols - 1 || 1);
+        const sizeY = availHeight / (rows - 1 || 1);
+        const cellSize = Math.min(sizeX, sizeY);
+        const gridWidth = (cols - 1) * cellSize;
+        const gridHeight = (rows - 1) * cellSize;
+        const offsetX = (this.width - gridWidth) / 2;
+        const offsetY = (this.height - gridHeight) / 2;
+
+        // Find nearest grid point
+        let best = null;
+        let bestDist2 = Infinity;
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const x = offsetX + c * cellSize;
+                const y = offsetY + r * cellSize;
+                const dx = mx - x;
+                const dy = my - y;
+                const d2 = dx * dx + dy * dy;
+                if (d2 < bestDist2) { bestDist2 = d2; best = { r, c, x, y }; }
+            }
+        }
+        // Accept if within a reasonable radius
+        const radius = 16; // pixels
+        if (best && bestDist2 <= radius * radius) return best;
+        return null;
     }
 
     applyStepLogic(completedStep) {
@@ -1089,6 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-2d').addEventListener('click', (e) => {
         visualizer.is3D = false;
         document.getElementById('dim-z-wrapper').style.display = 'none';
+        document.getElementById('source-z-wrapper').style.display = 'none';
 
         // Defaults for 2D
         document.getElementById('dim-x').value = 4;
@@ -1102,6 +1160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-3d').addEventListener('click', (e) => {
         visualizer.is3D = true;
         document.getElementById('dim-z-wrapper').style.display = 'block';
+        document.getElementById('source-z-wrapper').style.display = 'block';
 
         // Defaults for 3D
         document.getElementById('dim-x').value = 3;
@@ -1157,4 +1216,20 @@ document.addEventListener('DOMContentLoaded', () => {
         visualizer.reset();
         document.getElementById('btn-play').textContent = 'Play';
     });
+
+    // Source inputs
+    const applySource = () => {
+        const sx = parseInt(document.getElementById('source-x').value) || 0;
+        const sy = parseInt(document.getElementById('source-y').value) || 0;
+        const sz = visualizer.is3D ? (parseInt(document.getElementById('source-z').value) || 0) : 0;
+        visualizer.setRootByCoords(sx, sy, sz);
+    };
+    const btnApply = document.getElementById('btn-apply-source');
+    if (btnApply) btnApply.addEventListener('click', applySource);
+    const sxEl = document.getElementById('source-x');
+    const syEl = document.getElementById('source-y');
+    const szEl = document.getElementById('source-z');
+    if (sxEl) sxEl.addEventListener('change', applySource);
+    if (syEl) syEl.addEventListener('change', applySource);
+    if (szEl) szEl.addEventListener('change', applySource);
 });
